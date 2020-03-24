@@ -1,3 +1,6 @@
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (asdf:load-system "data-flow-features"))
+
 (defsystem "data-flow"
   :author "Mark Cox"
   :description "A framework for authoring and using components that process data arriving via ports."
