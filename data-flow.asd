@@ -24,7 +24,8 @@
                 :serial t
                 :components ((:file "packages")
                              (:file "protocols")
-                             (:file "fifo")))))
+                             (:file "fifo")
+                             (:file "bt-mutex-queue" :if-feature data-flow.features:threads)))))
 
 ;;;; Tests
 
