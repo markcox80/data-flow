@@ -4,7 +4,7 @@
 (defsystem "data-flow"
   :author "Mark Cox"
   :description "A framework for authoring and using components that process data arriving via ports."
-  :depends-on ("data-flow/protocols")
+  :depends-on ()
   :in-order-to ((test-op (test-op "data-flow/tests"))))
 
 (defsystem "data-flow/protocols"
