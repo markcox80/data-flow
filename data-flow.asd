@@ -15,6 +15,16 @@
                 :serial t
                 :components ((:file "packages")
                              (:file "protocols")))))
+
+(defsystem "data-flow/containers"
+  :author "Mark Cox"
+  :description "Containers for the data-flow system."
+  :serial t
+  :components ((:module "containers"
+                :serial t
+                :components ((:file "packages")
+                             (:file "protocols")
+                             (:file "fifo")))))
 
 ;;;; Tests
 
@@ -28,7 +38,19 @@
                 :components ((:file "packages")
                              (:file "asdf")))))
 
+(defsystem "data-flow/containers/tests"
+  :author "Mark Cox"
+  :description "Tests for the data-flow/containers system."
+  :depends-on ("data-flow/tests/common"
+               "data-flow/containers")
+  :serial t
+  :components ((:module "containers/tests"
+                :serial t
+                :components ((:file "packages")
+                             (:file "fifo")))))
+
 (defsystem "data-flow/tests"
   :author "Mark Cox"
   :description "Tests for the data-flow system."
-  :depends-on ("data-flow/tests/common"))
+  :depends-on ("data-flow/tests/common"
+               "data-flow/containers/tests"))
