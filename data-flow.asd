@@ -4,7 +4,8 @@
 (defsystem "data-flow"
   :author "Mark Cox"
   :description "A framework for authoring and using components that process data arriving via ports."
-  :depends-on ("data-flow/protocols"))
+  :depends-on ("data-flow/protocols")
+  :in-order-to ((test-op (test-op "data-flow/tests"))))
 
 (defsystem "data-flow/protocols"
   :author "Mark Cox"
@@ -14,3 +15,20 @@
                 :serial t
                 :components ((:file "packages")
                              (:file "protocols")))))
+
+;;;; Tests
+
+(defsystem "data-flow/tests/common"
+  :author "Mark Cox"
+  :description "Common functionality needed for the data-flow/tests system."
+  :depends-on ("fiveam")
+  :serial t
+  :components ((:module "tests"
+                :serial t
+                :components ((:file "packages")
+                             (:file "asdf")))))
+
+(defsystem "data-flow/tests"
+  :author "Mark Cox"
+  :description "Tests for the data-flow system."
+  :depends-on ("data-flow/tests/common"))
