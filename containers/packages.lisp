@@ -2,7 +2,8 @@
   (:use "COMMON-LISP")
   (:export "QUEUE"
            "ENQUEUE"
-           "DEQUEUE"))
+           "DEQUEUE"
+           "DOQUEUE"))
 
 (defpackage "DATA-FLOW.FIFO"
   (:use "COMMON-LISP")
