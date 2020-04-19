@@ -49,7 +49,8 @@
   :components ((:module "containers/tests"
                 :serial t
                 :components ((:file "packages")
-                             (:file "fifo")))))
+                             (:file "fifo")
+                             (:file "linked-list")))))
 
 (defsystem "data-flow/tests"
   :author "Mark Cox"
