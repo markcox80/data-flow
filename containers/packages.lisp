@@ -5,6 +5,25 @@
            "DEQUEUE"
            "DOQUEUE"))
 
+(defpackage "DATA-FLOW.LINKED-LIST"
+  (:use "COMMON-LISP")
+  (:export "LINKED-LIST"
+           "MAKE-LINKED-LIST"
+           "EMPTYP"
+           "PUSH-BACK"
+           "POP-BACK"
+           "PUSH-FRONT"
+           "POP-FRONT"
+           "FRONT"
+           "BACK")
+
+  (:export "LINK"
+           "LINKP"
+           "MAKE-LINK"
+           "VALUE"
+           "PREVIOUS"
+           "NEXT"))
+
 (defpackage "DATA-FLOW.FIFO"
   (:use "COMMON-LISP")
   (:export "FIFO"
