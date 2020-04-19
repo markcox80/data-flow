@@ -25,6 +25,7 @@
                 :components ((:file "packages")
                              (:file "protocols")
                              (:file "fifo")
+                             (:file "linked-list")
                              (:file "bt-mutex-queue" :if-feature data-flow.features:threads)))))
 
 ;;;; Tests
@@ -48,7 +49,8 @@
   :components ((:module "containers/tests"
                 :serial t
                 :components ((:file "packages")
-                             (:file "fifo")))))
+                             (:file "fifo")
+                             (:file "linked-list")))))
 
 (defsystem "data-flow/tests"
   :author "Mark Cox"
