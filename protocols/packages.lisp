@@ -7,10 +7,11 @@
   ;; Scheduler protocol
   (:export "SCHEDULER"
            "SCHEDULE"
-           "EXECUTE"
-           "EXECUTE1"
-           "EXECUTE-UNTIL"
            "EXECUTINGP"
+           "START"
+           "WAIT-UNTIL-FINISHED"
+           "CLEANUP"
+           "EXECUTE"
            "BLOCKING-ALLOWED-P"
 
            "PARALLEL-SCHEDULER"

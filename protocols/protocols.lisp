@@ -12,10 +12,12 @@
   ())
 
 (defgeneric schedule (scheduler runnable))
-(defgeneric execute1 (scheduler))
-(defgeneric execute-until (scheduler termination-function))
-(defgeneric executingp (scheduler))
 (defgeneric blocking-allowed-p (scheduler))
+(defgeneric executingp (scheduler))
+(defgeneric start (scheduler))
+(defgeneric wait-until-finished (scheduler))
+(defgeneric cleanup (scheduler))
+(defgeneric execute (scheduler))
 
 (define-condition already-executing-error (error)
   ((%scheduler :initarg :scheduler
