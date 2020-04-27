@@ -7,7 +7,6 @@
          (eql expected-object? object?))))
 
 (test fifo-test
-  (flet ((dequeue-test (expected-object expected-object?))))
   (let* ((fifo (data-flow.fifo:make-fifo)))
     (is (dequeue-test nil nil fifo))
     (data-flow.queue:enqueue fifo 1)
