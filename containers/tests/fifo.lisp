@@ -18,3 +18,15 @@
     (is (dequeue-test 3 t fifo))
     (is (dequeue-test nil nil fifo))
     (is (dequeue-test nil nil fifo))))
+
+(test fifo-test/emptyp
+  (let* ((fifo (data-flow.fifo:make-fifo)))
+    (is-true (data-flow.queue:emptyp fifo))
+    (data-flow.queue:enqueue fifo 1)
+    (is-false (data-flow.queue:emptyp fifo))
+    (data-flow.queue:enqueue fifo 2)
+    (is-false (data-flow.queue:emptyp fifo))
+    (dequeue-test 1 t fifo)
+    (is-false (data-flow.queue:emptyp fifo))
+    (dequeue-test 2 t fifo)
+    (is-true (data-flow.queue:emptyp fifo))))
