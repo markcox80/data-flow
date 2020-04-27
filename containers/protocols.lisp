@@ -17,9 +17,9 @@
             ,var ,object?)
        (tagbody
           ,start-tag
-          (multiple-value-setq (,var ,object?) (data-flow.queue:dequeue ,queue-var)
-            (unless ,object?
-              (go ,end-tag))
-            ,@body
-            (go ,start-tag))
+          (multiple-value-setq (,var ,object?) (data-flow.queue:dequeue ,queue-var))
+          (unless ,object?
+            (go ,end-tag))
+          ,@body
+          (go ,start-tag)
           ,end-tag))))
