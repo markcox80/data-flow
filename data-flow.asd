@@ -27,6 +27,16 @@
                              (:file "fifo")
                              (:file "linked-list")
                              (:file "bt-mutex-queue" :if-feature data-flow.features:threads)))))
+
+(defsystem "data-flow/schedulers"
+  :author "Mark Cox"
+  :description "Schedulers for the data-flow system."
+  :serial t
+  :depends-on ("data-flow/protocols" "data-flow/containers")
+  :components ((:module "schedulers"
+                :serial t
+                :components ((:file "packages")
+                             (:file "resource")))))
 
 ;;;; Tests
 
