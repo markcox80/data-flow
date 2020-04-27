@@ -1,6 +1,7 @@
 (defpackage "DATA-FLOW.QUEUE"
   (:use "COMMON-LISP")
   (:export "QUEUE"
+           "EMPTYP"
            "ENQUEUE"
            "DEQUEUE"
            "DOQUEUE"))
