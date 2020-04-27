@@ -5,8 +5,7 @@
 (defgeneric run (scheduler runnable))
 
 (defmethod run (scheduler (function function))
-  (declare (ignore scheduler))
-  (funcall function))
+  (funcall function scheduler))
 
 (defclass scheduler ()
   ())
