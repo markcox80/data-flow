@@ -4,6 +4,9 @@
   ;; Runnable protocol
   (:export "RUN")
 
+  ;; Scheduler State
+  (:export "SCHEDULER-STATE")
+
   ;; Scheduler protocol
   (:export "SCHEDULER"
            "SCHEDULE"

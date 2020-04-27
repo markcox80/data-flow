@@ -32,6 +32,28 @@
                                                           (main-worker-loop worker))
                                                         :name (format nil "~A" 'resource-scheduler)))
     worker))
+
+
+;;;; Resource Scheduler State
+;;;;
+;;;; This object is returned by the SCHEDULE method.
+
+(defclass resource-scheduler-state (data-flow:scheduler-state)
+  ((%remaining-tasks :initarg :remaining-tasks
+                     :reader remaining-tasks)
+   (%remaining-resources :initarg :remaining-resources
+                         :reader remaining-resources)
+   (%state :initarg :state
+           :reader state)))
+
+(defun make-resource-scheduler-state (remaining-tasks remaining-resources state)
+  (make-instance 'resource-scheduler-state
+                 :remaining-tasks remaining-tasks
+                 :remaining-resources remaining-resources
+                 :state state))
+
+(defmethod data-flow:executingp ((object resource-scheduler-state))
+  (not (eql :paused (state object))))
 
 ;;;; Resource Scheduler
 
@@ -99,7 +121,10 @@
                                ((:executing
                                  (incf (%remaining-tasks scheduler))
                                  (%executing-queue scheduler))))
-                             (list runnable required-resources))))
+                             (list runnable required-resources))
+    (make-resource-scheduler-state (%remaining-tasks scheduler)
+                                   (%remaining-resources scheduler)
+                                   (%state scheduler))))
 
 (defun start-helper (scheduler new-state)
   (check-type new-state (member :executing1 :executing))
