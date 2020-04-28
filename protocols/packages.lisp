@@ -5,7 +5,8 @@
   (:export "RUN")
 
   ;; Scheduler State
-  (:export "SCHEDULER-STATE")
+  (:export "SCHEDULER-STATE"
+           "COUNT-REMAINING-RUNNABLES")
 
   ;; Scheduler protocol
   (:export "SCHEDULER"
@@ -15,6 +16,7 @@
            "START1"
            "WAIT-UNTIL-FINISHED"
            "CLEANUP"
+           "EXECUTE1"
            "EXECUTE"
            "BLOCKING-ALLOWED-P"
 
