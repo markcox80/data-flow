@@ -129,17 +129,17 @@
 (defun start-helper (scheduler new-state)
   (check-type new-state (member :executing1 :executing))
   (bordeaux-threads:with-lock-held ((lock scheduler))
-    (unless (eql :paused (%state scheduler))
-      (error "Resource scheduler has already been started."))
-    (setf (%state scheduler) new-state)
-    (data-flow.queue:doqueue (runnable (%scheduled-queue scheduler))
-      (incf (%remaining-tasks scheduler))
-      (data-flow.queue:enqueue (%executing-queue scheduler) runnable))
-    (unless (%workers scheduler)
-      (setf (%workers scheduler) (loop
-                                   for index from 0 below (number-of-threads scheduler)
-                                   collect
-                                   (make-worker scheduler))))))
+    (when (eql :paused (%state scheduler))
+      (setf (%state scheduler) new-state)
+      (data-flow.queue:doqueue (runnable (%scheduled-queue scheduler))
+        (incf (%remaining-tasks scheduler))
+        (data-flow.queue:enqueue (%executing-queue scheduler) runnable))
+      (unless (%workers scheduler)
+        (setf (%workers scheduler) (loop
+                                     for index from 0 below (number-of-threads scheduler)
+                                     collect
+                                     (make-worker scheduler))))
+      t)))
 
 (defmethod data-flow:start ((scheduler resource-scheduler))
   (start-helper scheduler :executing))
@@ -229,6 +229,7 @@
                                        (data?
                                         (setf runnable (first data)
                                               required-resources (second data))
+                                        (assert (<= required-resources (resources scheduler)))
                                         (cond ((>= %remaining-resources required-resources)
                                                (decf %remaining-resources required-resources)
                                                :run)
