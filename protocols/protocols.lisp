@@ -59,3 +59,16 @@
 
 (defclass parallel-scheduler (scheduler)
   ())
+
+
+;;;; Default implementations for SCHEDULER.
+
+(defmethod execute1 ((scheduler scheduler))
+  (start1 scheduler)
+  (unwind-protect (wait-until-finished scheduler)
+    (cleanup scheduler)))
+
+(defmethod execute ((scheduler scheduler))
+  (start scheduler)
+  (unwind-protect (wait-until-finished scheduler)
+    (cleanup scheduler)))
