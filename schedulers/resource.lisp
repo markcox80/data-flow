@@ -39,16 +39,17 @@
 ;;;; This object is returned by the SCHEDULE method.
 
 (defclass resource-scheduler-state (data-flow:scheduler-state)
-  ((%remaining-tasks :initarg :remaining-tasks
-                     :reader remaining-tasks)
+  ((%remaining-count :initarg :remaining-count
+                     :reader remaining-count
+                     :reader data-flow:count-remaining-runnables)
    (%remaining-resources :initarg :remaining-resources
                          :reader remaining-resources)
    (%state :initarg :state
            :reader state)))
 
-(defun make-resource-scheduler-state (remaining-tasks remaining-resources state)
+(defun make-resource-scheduler-state (remaining-count remaining-resources state)
   (make-instance 'resource-scheduler-state
-                 :remaining-tasks remaining-tasks
+                 :remaining-count remaining-count
                  :remaining-resources remaining-resources
                  :state state))
 
@@ -82,9 +83,9 @@
                      :reader %executing-queue)
    (%remaining-resources :initarg :remaining-resources
                          :accessor %remaining-resources)
-   (%reamining-tasks :initarg :remaining-tasks
+   (%reamining-tasks :initarg :remaining-count
                      :initform 0
-                     :accessor %remaining-tasks)
+                     :accessor %remaining-count)
    (%state :initarg :state
            :initform :paused
            :accessor %state)
@@ -119,10 +120,10 @@
                                ((:paused :executing1)
                                 (%scheduled-queue scheduler))
                                ((:executing
-                                 (incf (%remaining-tasks scheduler))
+                                 (incf (%remaining-count scheduler))
                                  (%executing-queue scheduler))))
                              (list runnable required-resources))
-    (make-resource-scheduler-state (%remaining-tasks scheduler)
+    (make-resource-scheduler-state (%remaining-count scheduler)
                                    (%remaining-resources scheduler)
                                    (%state scheduler))))
 
@@ -132,7 +133,7 @@
     (when (eql :paused (%state scheduler))
       (setf (%state scheduler) new-state)
       (data-flow.queue:doqueue (runnable (%scheduled-queue scheduler))
-        (incf (%remaining-tasks scheduler))
+        (incf (%remaining-count scheduler))
         (data-flow.queue:enqueue (%executing-queue scheduler) runnable))
       (unless (%workers scheduler)
         (setf (%workers scheduler) (loop
@@ -194,14 +195,14 @@
          (:poll
           (with-accessors ((resources resources)
                            (%remaining-resources %remaining-resources)
-                           (%remaining-tasks %remaining-tasks)
+                           (%remaining-count %remaining-count)
                            (%state %state)
                            (%error %error)
                            (%executing-queue %executing-queue))
               scheduler
             (bordeaux-threads:with-lock-held ((lock scheduler))
               (when (realp last-resources)
-                (decf %remaining-tasks)
+                (decf %remaining-count)
                 (incf %remaining-resources last-resources)
                 (setf last-resources nil) ;; This needs to be done in case we loop.
 
@@ -209,7 +210,7 @@
                 ;; resources equals the total number of
                 ;; resources. This avoids any issues with terminating
                 ;; due to floating point arithmetic.
-                (when (zerop %remaining-tasks)
+                (when (zerop %remaining-count)
                   (setf %remaining-resources resources
                         %state :paused)))
 
@@ -219,7 +220,7 @@
                       %error last-error
                       last-error nil))
 
-              (check-type %remaining-tasks (integer 0))
+              (check-type %remaining-count (integer 0))
               (check-type %remaining-resources (real 0))
 
               (multiple-value-bind (data data?) (data-flow.queue:dequeue %executing-queue)
