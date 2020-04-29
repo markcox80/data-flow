@@ -64,11 +64,17 @@
 (deftype scheduler-state ()
   '(member :paused :executing1 :executing))
 
+(defvar *default-poll-seconds* 0.0001)
+(defgeneric threads (scheduler))
+
 (defclass resource-scheduler (data-flow:parallel-scheduler)
   ((%resources :initarg :resources
                :reader resources)
    (%number-of-threads :initarg :number-of-threads
                        :reader number-of-threads)
+   (%poll-seconds :initarg :poll-seconds
+                  :initform 0.0001
+                  :reader poll-seconds)
    (%wait-lock :initarg :wait-lock
                :initform (bordeaux-threads:make-lock (format nil "~A::WAIT-LOCK" 'resource-scheduler))
                :reader wait-lock)
@@ -99,14 +105,19 @@
                         :initform (constantly 1)
                         :reader %resources-function)))
 
-(defun make-resource-scheduler (number-of-threads &key (resources number-of-threads) (resources-function (constantly 1)))
+(defun make-resource-scheduler (number-of-threads
+                                &key
+                                  (resources number-of-threads)
+                                  (resources-function (constantly 1))
+                                  (poll-seconds *default-poll-seconds*))
   (check-type resources runnable-resources)
   (check-type number-of-threads (integer 1))
   (make-instance 'resource-scheduler
                  :resources resources
                  :remaining-resources resources
                  :number-of-threads number-of-threads
-                 :resources-function resources-function))
+                 :resources-function resources-function
+                 :poll-seconds poll-seconds))
 
 (defmethod data-flow:schedule ((scheduler resource-scheduler) runnable &key required-resources)
   (check-type required-resources (or null runnable-resources))
@@ -166,7 +177,7 @@
   (check-type seconds (or null (real 0)))
   (check-type poll-seconds (or null (real 0)))
   (loop
-    with poll-seconds = (or poll-seconds 0.0001)
+    with poll-seconds = (or poll-seconds (poll-seconds scheduler))
     with start = (get-internal-real-time)
     for current = (get-internal-real-time)
     while (or (null seconds)
@@ -185,7 +196,7 @@
   (check-type last-resources (or null runnable-resources))
   (check-type last-error (or null error))
   (loop
-    with poll-seconds = 0.0001
+    with poll-seconds = (poll-seconds scheduler)
     with runnable = nil
     with required-resources = nil
     with loop-state = :poll
