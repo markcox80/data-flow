@@ -278,3 +278,8 @@
 (defmethod data-flow:blocking-allowed-p ((scheduler resource-scheduler))
   (bordeaux-threads:with-lock-held ((lock scheduler))
     (data-flow.queue:emptyp (%executing-queue scheduler))))
+
+(defmethod threads ((scheduler resource-scheduler))
+  (let* ((workers (bordeaux-threads:with-lock-held ((lock scheduler))
+                    (%workers scheduler))))
+    (mapcar #'thread workers)))
