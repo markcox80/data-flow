@@ -9,6 +9,11 @@
 (defclass scheduler-state ()
   ())
 
+;; Return the number of runnables that will be queued for execution
+;; the next time the scheduler is started.
+(defgeneric count-queued-runnables (scheduler-state))
+
+;; Return the number of runnables left to be executed.
 (defgeneric count-remaining-runnables (scheduler-state))
 
 ;;;; Scheduler

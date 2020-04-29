@@ -6,6 +6,7 @@
 
   ;; Scheduler State
   (:export "SCHEDULER-STATE"
+           "COUNT-QUEUED-RUNNABLES"
            "COUNT-REMAINING-RUNNABLES")
 
   ;; Scheduler protocol
