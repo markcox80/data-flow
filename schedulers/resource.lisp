@@ -42,14 +42,17 @@
   ((%remaining-count :initarg :remaining-count
                      :reader remaining-count
                      :reader data-flow:count-remaining-runnables)
+   (%queued-count :initarg :queued-count
+                  :reader data-flow:count-queued-runnables)
    (%remaining-resources :initarg :remaining-resources
                          :reader remaining-resources)
    (%state :initarg :state
            :reader state)))
 
-(defun make-resource-scheduler-state (remaining-count remaining-resources state)
+(defun make-resource-scheduler-state (remaining-count queued-count remaining-resources state)
   (make-instance 'resource-scheduler-state
                  :remaining-count remaining-count
+                 :queued-count queued-count
                  :remaining-resources remaining-resources
                  :state state))
 
@@ -89,9 +92,12 @@
                      :reader %executing-queue)
    (%remaining-resources :initarg :remaining-resources
                          :accessor %remaining-resources)
-   (%reamining-tasks :initarg :remaining-count
+   (%remaining-count :initarg :remaining-count
                      :initform 0
                      :accessor %remaining-count)
+   (%queued-count :initarg :queued-count
+                  :initform 0
+                  :accessor %queued-count)
    (%state :initarg :state
            :initform :paused
            :accessor %state)
@@ -129,12 +135,14 @@
              runnable scheduler required-resources (resources scheduler)))
     (data-flow.queue:enqueue (ecase (%state scheduler)
                                ((:paused :executing1)
+                                (incf (%queued-count scheduler))
                                 (%scheduled-queue scheduler))
                                ((:executing
                                  (incf (%remaining-count scheduler))
                                  (%executing-queue scheduler))))
                              (list runnable required-resources))
     (make-resource-scheduler-state (%remaining-count scheduler)
+                                   (%queued-count scheduler)
                                    (%remaining-resources scheduler)
                                    (%state scheduler))))
 
@@ -146,6 +154,7 @@
       (data-flow.queue:doqueue (runnable (%scheduled-queue scheduler))
         (incf (%remaining-count scheduler))
         (data-flow.queue:enqueue (%executing-queue scheduler) runnable))
+      (setf (%queued-count scheduler) 0)
       (unless (%workers scheduler)
         (setf (%workers scheduler) (loop
                                      for index from 0 below (number-of-threads scheduler)
