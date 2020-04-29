@@ -149,18 +149,28 @@
 (defun start-helper (scheduler new-state)
   (check-type new-state (member :executing1 :executing))
   (bordeaux-threads:with-lock-held ((lock scheduler))
-    (when (eql :paused (%state scheduler))
-      (setf (%state scheduler) new-state)
-      (data-flow.queue:doqueue (runnable (%scheduled-queue scheduler))
-        (incf (%remaining-count scheduler))
-        (data-flow.queue:enqueue (%executing-queue scheduler) runnable))
-      (setf (%queued-count scheduler) 0)
-      (unless (%workers scheduler)
-        (setf (%workers scheduler) (loop
-                                     for index from 0 below (number-of-threads scheduler)
-                                     collect
-                                     (make-worker scheduler))))
-      t)))
+    (ecase (%state scheduler)
+      (:paused
+       (setf (%state scheduler) new-state)
+       (data-flow.queue:doqueue (runnable (%scheduled-queue scheduler))
+         (incf (%remaining-count scheduler))
+         (data-flow.queue:enqueue (%executing-queue scheduler) runnable))
+       (setf (%queued-count scheduler) 0)
+       (unless (%workers scheduler)
+         (setf (%workers scheduler) (loop
+                                      for index from 0 below (number-of-threads scheduler)
+                                      collect
+                                      (make-worker scheduler))))
+       t)
+      (:executing1
+       (when (and (eql new-state :executing)
+                  (null (%error scheduler)))
+         (setf (%state scheduler) :executing)
+         t))
+      (:executing
+       (when (eql new-state :executing1)
+         (setf (%state scheduler) :executing1)
+         t)))))
 
 (defmethod data-flow:start ((scheduler resource-scheduler))
   (start-helper scheduler :executing))
