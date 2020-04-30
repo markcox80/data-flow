@@ -72,7 +72,6 @@
   '(member :paused :executing1 :executing))
 
 (defvar *default-poll-seconds* 0.0001)
-(defgeneric threads (scheduler))
 
 (define-condition invalid-resource-requirement-error (error)
   ((%total-resources :initarg :total-resources
@@ -94,7 +93,7 @@
   ((%resources :initarg :resources
                :reader resources)
    (%number-of-threads :initarg :number-of-threads
-                       :reader number-of-threads)
+                       :reader data-flow:number-of-threads)
    (%poll-seconds :initarg :poll-seconds
                   :initform 0.0001
                   :reader poll-seconds)
@@ -181,7 +180,7 @@
        (setf (%queued-count scheduler) 0)
        (unless (%workers scheduler)
          (setf (%workers scheduler) (loop
-                                      for index from 0 below (number-of-threads scheduler)
+                                      for index from 0 below (data-flow:number-of-threads scheduler)
                                       collect
                                       (make-worker scheduler))))
        t)
@@ -207,7 +206,7 @@
                       (error "Cannot cleanup whilst scheduler is executing."))
 
                     (when (%workers scheduler)
-                      (dotimes (i (number-of-threads scheduler))
+                      (dotimes (i (data-flow:number-of-threads scheduler))
                         (data-flow.queue:enqueue (%executing-queue scheduler) *exit*))
                       (prog1 (%workers scheduler)
                         (setf (%workers scheduler) nil))))))
@@ -327,7 +326,7 @@
   (bordeaux-threads:with-lock-held ((lock scheduler))
     (data-flow.queue:emptyp (%executing-queue scheduler))))
 
-(defmethod threads ((scheduler resource-scheduler))
+(defmethod data-flow:threads ((scheduler resource-scheduler))
   (let* ((workers (bordeaux-threads:with-lock-held ((lock scheduler))
                     (%workers scheduler))))
     (mapcar #'thread workers)))
