@@ -36,7 +36,7 @@
   :components ((:module "schedulers"
                 :serial t
                 :components ((:file "packages")
-                             (:file "resource")))))
+                             (:file "resource" :if-feature data-flow.features:threads)))))
 
 ;;;; Tests
 
