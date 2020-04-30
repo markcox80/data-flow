@@ -257,15 +257,17 @@
               (when (realp last-resources)
                 (decf %remaining-count)
                 (incf %remaining-resources last-resources)
-                (setf last-resources nil) ;; This needs to be done in case we loop.
 
-                ;; When no tasks are available, ensure the remaining
-                ;; resources equals the total number of
-                ;; resources. This avoids any issues with terminating
-                ;; due to floating point arithmetic.
-                (when (zerop %remaining-count)
-                  (setf %remaining-resources resources
-                        %state :paused)))
+                ;; This needs to be done in case we loop.
+                (setf last-resources nil))
+
+              ;; When no tasks are available, ensure the remaining
+              ;; resources equals the total number of
+              ;; resources. This avoids any issues with terminating
+              ;; due to floating point arithmetic.
+              (when (zerop %remaining-count)
+                (setf %remaining-resources resources
+                      %state :paused))
 
               (when (and last-error
                          (eql %state :executing))
