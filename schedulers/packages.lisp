@@ -1,9 +1,10 @@
+#+data-flow.features:threads
 (defpackage "DATA-FLOW.RESOURCE-SCHEDULER"
   (:use "COMMON-LISP")
 
   (:export "*DEFAULT-POLL-SECONDS*"
-           "RESOURCES-SCHEDULER"
-           "MAKE-RESOURCES-SCHEDULER"
+           "RESOURCE-SCHEDULER"
+           "MAKE-RESOURCE-SCHEDULER"
            "RESOURCES"
            "NUMBER-OF-THREADS"
            "THREADS"))
