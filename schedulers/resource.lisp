@@ -294,6 +294,10 @@
            (:run (list runnable required-resources))
            (:terminate (list *exit* nil))))))
 
+(defmethod data-flow:executingp ((scheduler resource-scheduler))
+  (bordeaux-threads:with-lock-held ((lock scheduler))
+    (not (eql :paused (%state scheduler)))))
+
 (defmethod data-flow:blocking-allowed-p ((scheduler resource-scheduler))
   (bordeaux-threads:with-lock-held ((lock scheduler))
     (data-flow.queue:emptyp (%executing-queue scheduler))))
