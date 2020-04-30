@@ -22,4 +22,7 @@
            "BLOCKING-ALLOWED-P"
 
            "PARALLEL-SCHEDULER"
+           "NUMBER-OF-THREADS"
+           "THREADS"
+
            "SEQUENTIAL-SCHEDULER"))

@@ -59,12 +59,21 @@
 ;; START, WAIT-UNTIL-FINISHED and CLEANUP.
 (defgeneric execute (scheduler))
 
+
+;;;; Sequential Scheduler
+
 (defclass sequential-scheduler (scheduler)
   ())
+
+
+;;;; Parallel Scheduler
 
 (defclass parallel-scheduler (scheduler)
   ())
 
+(defgeneric number-of-threads (parallel-scheduler))
+
+(defgeneric threads (parallel-scheduler))
 
 ;;;; Default implementations for SCHEDULER.
 
