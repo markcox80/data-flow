@@ -7,4 +7,6 @@
            "MAKE-RESOURCE-SCHEDULER"
            "RESOURCES"
            "NUMBER-OF-THREADS"
-           "THREADS"))
+           "THREADS"
+
+           "INVALID-RESOURCE-REQUIREMENT-ERROR"))

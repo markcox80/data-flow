@@ -74,6 +74,22 @@
 (defvar *default-poll-seconds* 0.0001)
 (defgeneric threads (scheduler))
 
+(define-condition invalid-resource-requirement-error (error)
+  ((%total-resources :initarg :total-resources
+                     :reader invalid-resource-requirement-error-total-resources)
+   (%required-resources :initarg :required-resources
+                        :reader invalid-resource-requirement-error-required-resources)
+   (%runnable :initarg :runnable
+              :reader invalid-resource-requirement-error-runnable)
+   (%scheduler :initarg :scheduler
+               :reader invalid-resource-requirement-error-scheduler))
+  (:report (lambda (condition stream)
+             (format stream "The amount of resource required for ~A exceeds the total number of resources managed by the scheduler ~A i.e. ~A > ~A."
+                     (invalid-resource-requirement-error-runnable condition)
+                     (invalid-resource-requirement-error-scheduler condition)
+                     (invalid-resource-requirement-error-required-resources condition)
+                     (invalid-resource-requirement-error-total-resources condition)))))
+
 (defclass resource-scheduler (data-flow:parallel-scheduler)
   ((%resources :initarg :resources
                :reader resources)
@@ -135,8 +151,11 @@
     (setf required-resources (or required-resources
                                  (funcall (%resources-function scheduler) runnable)))
     (when (> required-resources (resources scheduler))
-      (error "The amount of resource required for ~A exceeds the total number of resources managed by the scheduler ~A i.e. ~A > ~A."
-             runnable scheduler required-resources (resources scheduler)))
+      (error 'invalid-resource-requirement-error
+             :scheduler scheduler
+             :runnable runnable
+             :total-resources (resources scheduler)
+             :required-resources required-resources))
     (data-flow.queue:enqueue (ecase (%state scheduler)
                                ((:paused :executing1)
                                 (incf (%queued-count scheduler))
