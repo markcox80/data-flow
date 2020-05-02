@@ -264,19 +264,19 @@
                 ;; This needs to be done in case we loop.
                 (setf last-resources nil))
 
+              (when last-error
+                (setf %state :executing1
+                      %error last-error)
+
+                ;; This needs to be done in case we loop
+                (setf last-error nil))
+
               ;; When no tasks are available, ensure the remaining
-              ;; resources equals the total number of
-              ;; resources. This avoids any issues with terminating
-              ;; due to floating point arithmetic.
+              ;; resources equals the total number of resources. This
+              ;; avoids any issues with floating point arithmetic.
               (when (zerop %remaining-count)
                 (setf %remaining-resources resources
                       %state :paused))
-
-              (when (and last-error
-                         (eql %state :executing))
-                (setf %state :executing1
-                      %error last-error
-                      last-error nil))
 
               (check-type %remaining-count (integer 0))
               (check-type %remaining-resources (real 0))
