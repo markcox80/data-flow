@@ -203,17 +203,26 @@
   (start-helper scheduler :executing1))
 
 (defmethod data-flow:cleanup ((scheduler resource-scheduler))
-  (let* ((workers (bordeaux-threads:with-lock-held ((lock scheduler))
-                    (unless (eql :paused (%state scheduler))
-                      (error "Cannot cleanup whilst scheduler is executing."))
+  (loop
+    with workers = nil
+    with finished? = nil
+    until finished?
+    do
+       (setf workers nil)
+       (bordeaux-threads:with-lock-held ((lock scheduler))
+         (when (eql :paused (%state scheduler))
+           (setf workers (%workers scheduler)
+                 (%workers scheduler) nil
+                 finished? t)
+           (when workers
+             (dotimes (i (data-flow:number-of-threads scheduler))
+               (data-flow.queue:enqueue (%executing-queue scheduler) *exit*)))))
+       (unless finished?
+         (bordeaux-threads:thread-yield))
 
-                    (when (%workers scheduler)
-                      (dotimes (i (data-flow:number-of-threads scheduler))
-                        (data-flow.queue:enqueue (%executing-queue scheduler) *exit*))
-                      (prog1 (%workers scheduler)
-                        (setf (%workers scheduler) nil))))))
-    (dolist (worker workers)
-      (bordeaux-threads:join-thread (thread worker))))
+    finally
+       (dolist (worker workers)
+         (bordeaux-threads:join-thread (thread worker))))
   (values))
 
 (defmethod data-flow:wait-until-finished ((scheduler resource-scheduler) &key seconds poll-seconds)
