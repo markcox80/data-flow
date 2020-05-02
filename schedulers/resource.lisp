@@ -173,7 +173,8 @@
   (bordeaux-threads:with-lock-held ((lock scheduler))
     (ecase (%state scheduler)
       (:paused
-       (setf (%state scheduler) new-state)
+       (setf (%state scheduler) new-state
+             (%error scheduler) nil)
        (data-flow.queue:doqueue (runnable (%scheduled-queue scheduler))
          (incf (%remaining-count scheduler))
          (data-flow.queue:enqueue (%executing-queue scheduler) runnable))
