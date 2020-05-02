@@ -25,7 +25,8 @@
     for (runnable resources) = (next-runnable scheduler last-resources last-error)
     until (eql runnable *exit*)
     do
-       (setf last-resources resources)
+       (setf last-resources resources
+             last-error nil)
        (handler-case (data-flow:run scheduler runnable)
          (error (e)
            (setf last-error e)))))
