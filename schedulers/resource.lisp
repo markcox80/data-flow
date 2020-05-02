@@ -229,7 +229,9 @@
     do
        (bordeaux-threads:with-lock-held ((lock scheduler))
          (when (eql :paused (%state scheduler))
-           (return-from data-flow:wait-until-finished t)))
+           (if (%error scheduler)
+               (error (%error scheduler))
+               (return-from data-flow:wait-until-finished t))))
        (bordeaux-threads:thread-yield)
        (sleep poll-seconds))
   nil)
