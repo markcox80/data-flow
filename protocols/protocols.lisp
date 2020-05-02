@@ -29,7 +29,13 @@
 ;; The schedule generic function must return an instance of
 ;; SCHEDULER-STATE.
 (defgeneric schedule (scheduler runnable &key &allow-other-keys))
+
+;; Return T if there are no runnables waiting to be executed. Users
+;; should be careful with this predicate in cases where they are using
+;; START1 to start the scheduler e.g. a runnable may be blocked
+;; waiting for activity from a runnable that is queued.
 (defgeneric blocking-allowed-p (scheduler))
+
 (defgeneric executingp (scheduler))
 
 ;; Start executing tasks that have been scheduled prior to invoking
