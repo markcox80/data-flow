@@ -337,7 +337,8 @@
 
 (defmethod data-flow:blocking-allowed-p ((scheduler resource-scheduler))
   (bordeaux-threads:with-lock-held ((lock scheduler))
-    (data-flow.queue:emptyp (%executing-queue scheduler))))
+    (<= (%remaining-count scheduler)
+        (data-flow:number-of-threads scheduler))))
 
 (defmethod data-flow:threads ((scheduler resource-scheduler))
   (let* ((workers (bordeaux-threads:with-lock-held ((lock scheduler))
