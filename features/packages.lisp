@@ -1,3 +1,6 @@
 (defpackage "DATA-FLOW.FEATURES"
   (:use "COMMON-LISP")
-  (:export "THREADS"))
+  (:export "FEATURE-UNAVAILABLE-ERROR")
+
+  (:export "THREADS"
+           "THREADS-UNAVAILABLE-ERROR"))

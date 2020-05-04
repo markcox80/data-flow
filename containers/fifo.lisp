@@ -14,6 +14,10 @@
                    :start cons
                    :end cons)))
 
+(defmethod data-flow.queue:emptyp ((fifo fifo))
+  (eql (start fifo)
+       (end fifo)))
+
 (defmethod data-flow.queue:enqueue ((fifo fifo) item)
   (let* ((new-end (cons nil nil))
          (current-end (end fifo)))
