@@ -62,8 +62,22 @@
                              (:file "fifo")
                              (:file "linked-list")))))
 
+(defsystem "data-flow/schedulers/tests"
+  :author "Mark Cox"
+  :description "Tests for the data-flow/schedulers system."
+  :depends-on ("data-flow/tests/common"
+               "data-flow/schedulers")
+  :serial t
+  :components ((:module "schedulers/tests"
+                :serial t
+                :components ((:file "packages")
+                             (:file "scheduler")
+                             (:file "parallel" :if-feature data-flow.features:threads)
+                             (:file "resource" :if-feature data-flow.features:threads)))))
+
 (defsystem "data-flow/tests"
   :author "Mark Cox"
   :description "Tests for the data-flow system."
   :depends-on ("data-flow/tests/common"
-               "data-flow/containers/tests"))
+               "data-flow/containers/tests"
+               "data-flow/schedulers/tests"))
