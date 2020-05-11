@@ -25,4 +25,15 @@
            "NUMBER-OF-THREADS"
            "THREADS"
 
-           "SEQUENTIAL-SCHEDULER"))
+           "SEQUENTIAL-SCHEDULER")
+
+  ;; Component protocol
+  (:export "COMPONENT"
+           "EXECUTION-STATE"
+           "COMPARE-AND-CHANGE-EXECUTION-STATE"
+           "MAKE-COMPONENT-LAMBDA"
+           "ENQUEUE-EVENT"
+           "PROCESS-ALL-EVENTS"
+           "PROCESS-EVENT"
+           "REQUIRES-EXECUTION-P"
+           "RUN"))
