@@ -1,12 +1,6 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (asdf:load-system "data-flow-features"))
 
-(defsystem "data-flow"
-  :author "Mark Cox"
-  :description "A framework for authoring and using components that process data arriving via ports."
-  :depends-on ()
-  :in-order-to ((test-op (test-op "data-flow/tests"))))
-
 (defsystem "data-flow/protocols"
   :author "Mark Cox"
   :description "Protocols for the data-flow system."
@@ -38,6 +32,25 @@
                 :components ((:file "packages")
                              (:file "sequential")
                              (:file "resource" :if-feature data-flow.features:threads)))))
+
+(defsystem "data-flow/components"
+  :author "Mark Cox"
+  :description "Component implementations for the data-flow system."
+  :serial t
+  :depends-on ("data-flow/protocols" "data-flow/containers")
+  :components ((:module "components"
+                :serial t
+                :components ((:file "packages")
+                             (:file "base-component")
+                             (:file "sequential-component")
+                             (:file "mutex-component" :if-feature data-flow.features:threads)
+                             (:file "component")))))
+
+(defsystem "data-flow"
+  :author "Mark Cox"
+  :description "A framework for authoring and using components that process data arriving via ports."
+  :depends-on ("data-flow/schedulers")
+  :in-order-to ((test-op (test-op "data-flow/tests"))))
 
 ;;;; Tests
 
@@ -77,9 +90,21 @@
                              (:file "parallel" :if-feature data-flow.features:threads)
                              (:file "resource" :if-feature data-flow.features:threads)))))
 
+(defsystem "data-flow/components/tests"
+  :author "Mark Cox"
+  :description "tests for the data-flow/components system."
+  :depends-on ("data-flow/tests/common"
+               "data-flow/components")
+  :serial t
+  :components ((:module "components/tests"
+                :serial t
+                :components ((:file "packages")
+                             (:file "component")))))
+
 (defsystem "data-flow/tests"
   :author "Mark Cox"
   :description "Tests for the data-flow system."
   :depends-on ("data-flow/tests/common"
                "data-flow/containers/tests"
-               "data-flow/schedulers/tests"))
+               "data-flow/schedulers/tests"
+               "data-flow/components/tests"))
