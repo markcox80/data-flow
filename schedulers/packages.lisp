@@ -1,3 +1,8 @@
+(defpackage "DATA-FLOW.SEQUENTIAL-SCHEDULER"
+  (:use "COMMON-LISP")
+  (:export "SEQUENTIAL-SCHEDULER"
+           "MAKE-SEQUENTIAL-SCHEDULER"))
+
 #+data-flow.features:threads
 (defpackage "DATA-FLOW.RESOURCE-SCHEDULER"
   (:use "COMMON-LISP")
