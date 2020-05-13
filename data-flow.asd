@@ -73,6 +73,7 @@
                 :serial t
                 :components ((:file "packages")
                              (:file "scheduler")
+                             (:file "sequential")
                              (:file "parallel" :if-feature data-flow.features:threads)
                              (:file "resource" :if-feature data-flow.features:threads)))))
 
