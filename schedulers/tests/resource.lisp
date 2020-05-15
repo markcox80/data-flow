@@ -25,11 +25,10 @@
                                       (lambda (scheduler)
                                         (setf (aref results index) (data-flow:blocking-allowed-p scheduler))))))
     (data-flow:execute scheduler)
-    (is (eql (data-flow:number-of-threads scheduler)
-             (count-if (lambda (value)
-                         (is-true (member value '(nil t)))
-                         (eql value t))
-                       results)))))
+    (is-true (plusp (count-if (lambda (value)
+                                (is-true (member value '(nil t)))
+                                (eql value t))
+                              results)))))
 
 ;;;; Add the resource scheduler to other test suites.
 
