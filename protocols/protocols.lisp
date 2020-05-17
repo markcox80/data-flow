@@ -181,14 +181,14 @@
                :reader scheduler)))
 
 (defun make-component-lambda (component)
-  (lambda (scheduler)
-    (assert (compare-and-change-execution-state component :scheduled :executing))
+  (lambda ()
+    (let* ((scheduler (scheduler component)))
+      (assert (compare-and-change-execution-state component :scheduled :executing))
 
-    (process-all-events component)
-    (unwind-protect (run scheduler component)
-      (assert (compare-and-change-execution-state component :executing :stopped)))
+      (process-all-events component)
+      (unwind-protect (run scheduler component)
+        (assert (compare-and-change-execution-state component :executing :stopped)))
 
-    (when (and (requires-execution-p component)
-               (compare-and-change-execution-state component :stopped :scheduled))
-      (schedule (scheduler component)
-                (make-component-lambda component)))))
+      (when (and (requires-execution-p component)
+                 (compare-and-change-execution-state component :stopped :scheduled))
+        (schedule scheduler (make-component-lambda component))))))
