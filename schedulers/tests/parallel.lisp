@@ -51,8 +51,7 @@
              ((setf state) (value)
                (bordeaux-threads:with-lock-held (lock)
                  (setf %state value))))
-        (data-flow:schedule scheduler (lambda (scheduler)
-                                        (declare (ignore scheduler))
+        (data-flow:schedule scheduler (lambda ()
                                         (setf (state) :running)
                                         (loop
                                           until (eql (state) :shutdown)
