@@ -36,7 +36,7 @@
          (results (make-array 8 :initial-element '#:unset)))
     (dotimes (i (length results))
       (data-flow:schedule scheduler (let* ((index i))
-                                      (lambda (scheduler)
+                                      (lambda ()
                                         (setf (aref results index) (data-flow:blocking-allowed-p scheduler))))))
     (data-flow:execute scheduler)
 

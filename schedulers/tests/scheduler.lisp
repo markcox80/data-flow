@@ -41,13 +41,13 @@
     (let* ((count1 -1)
            (count2 -1))
       (data-flow:schedule scheduler (let* ((executed? nil))
-                                      (lambda (scheduler)
+                                      (lambda ()
                                         (unless executed?
                                           (setf executed? t)
                                           (let* ((state (data-flow:schedule scheduler (constantly 1))))
                                             (setf count1 (data-flow:count-remaining-runnables state)))))))
       (data-flow:schedule scheduler (let* ((executed? nil))
-                                      (lambda (scheduler)
+                                      (lambda ()
                                         (unless executed?
                                           (setf executed? t)
                                           (let* ((state (data-flow:schedule scheduler (constantly 2))))
@@ -63,7 +63,7 @@
   (do-schedulers (scheduler)
     (is-false (data-flow:executingp scheduler))
     (let* ((result '#:unset))
-      (data-flow:schedule scheduler (lambda (scheduler)
+      (data-flow:schedule scheduler (lambda ()
                                       (setf result (data-flow:executingp scheduler))))
       (data-flow:execute scheduler)
       (is-false (data-flow:executingp scheduler))
@@ -75,17 +75,15 @@
 (test error-handling/simple
   (do-schedulers (scheduler)
     (let* ((results (make-array 5 :initial-element 0)))
-      (data-flow:schedule scheduler (lambda (scheduler)
-                                      (declare (ignore scheduler))
+      (data-flow:schedule scheduler (lambda ()
                                       (error 'test-error)))
       (dotimes (i 5)
         (let* ((index i))
           (data-flow:schedule scheduler
-                              (lambda (scheduler)
+                              (lambda ()
                                 (incf (aref results index))
                                 (data-flow:schedule scheduler
-                                                    (lambda (s)
-                                                      (declare (ignore s))
+                                                    (lambda ()
                                                       (incf (aref results index))))))))
       (data-flow:start1 scheduler)
       (signals test-error (data-flow:wait-until-finished scheduler))
@@ -97,8 +95,7 @@
 
 (test error-handling/reset
   (do-schedulers (scheduler)
-    (data-flow:schedule scheduler (lambda (scheduler)
-                                    (declare (ignore scheduler))
+    (data-flow:schedule scheduler (lambda ()
                                     (error 'test-error)))
     (data-flow:start scheduler)
     (signals test-error (data-flow:wait-until-finished scheduler))
@@ -108,8 +105,7 @@
 (test multiple-starts
   (do-schedulers (scheduler)
     (dolist (start-fn (list #'data-flow:start1 #'data-flow:start))
-      (data-flow:schedule scheduler (lambda (scheduler)
-                                      (declare (ignore scheduler))
+      (data-flow:schedule scheduler (lambda ()
                                       (sleep 1)))
       (funcall start-fn scheduler)
       (finishes (funcall start-fn scheduler))
@@ -121,8 +117,7 @@
   (do-schedulers (scheduler)
     (let* ((results (make-array 5 :initial-element 0)))
       (flet ((make-function (index)
-               (lambda (scheduler)
-                 (declare (ignore scheduler))
+               (lambda ()
                  (incf (aref results index)))))
 
         (dotimes (i 5)
