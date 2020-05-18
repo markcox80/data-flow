@@ -4,9 +4,9 @@
 
 (in-package "DATA-FLOW.COMPONENT")
 
-(defclass mutex-component (base-component)
+(defclass bt-mutex-component (base-component)
   ((%lock :initarg :lock
-          :initform (bordeaux-threads:make-lock "DATA-FLOW.COMPONENT::MUTEX-COMPONENT")
+          :initform (bordeaux-threads:make-lock "DATA-FLOW.COMPONENT::BT-MUTEX-COMPONENT")
           :reader lock)
    (%execution-state :initarg :execution-state
                      :initform :stopped
@@ -16,11 +16,11 @@
    :event-queue (data-flow.bt-mutex-queue:make-bt-mutex-queue
                  (data-flow.fifo:make-fifo))))
 
-(defmethod data-flow:execution-state ((component mutex-component))
+(defmethod data-flow:execution-state ((component bt-mutex-component))
   (bordeaux-threads:with-lock-held ((lock component))
     (%execution-state component)))
 
-(defmethod data-flow:compare-and-change-execution-state ((component mutex-component) old-state new-state)
+(defmethod data-flow:compare-and-change-execution-state ((component bt-mutex-component) old-state new-state)
   (with-accessors ((lock lock)
                    (%execution-state %execution-state))
     component

@@ -43,7 +43,7 @@
                 :components ((:file "packages")
                              (:file "base-component")
                              (:file "sequential-component")
-                             (:file "mutex-component" :if-feature data-flow.features:threads)
+                             (:file "bt-mutex-component" :if-feature data-flow.features:threads)
                              (:file "component")))))
 
 (defsystem "data-flow"
