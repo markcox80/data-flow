@@ -1,7 +1,18 @@
 (in-package "DATA-FLOW.COMPONENT.TESTS")
 (5am:in-suite all-component-tests)
 
-(defclass test-component (data-flow.component:component)
+(defun call-with-every-scheduler (function &key (number-of-threads 5))
+  (check-type number-of-threads (integer 1))
+  (data-flow.scheduler.tests::call-with-every-scheduler function)
+  (data-flow.scheduler.parallel.tests::call-with-every-parallel-scheduler function number-of-threads))
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defmacro with-every-scheduler ((scheduler &key (number-of-threads 5)) &body body)
+    `(call-with-every-scheduler (lambda (,scheduler)
+                                  ,@body)
+                                :number-of-threads ,number-of-threads)))
+
+(defclass test-component (data-flow:component)
   ((%delegate-function :initarg :delegate-function
                        :reader delegate-function)
    (%events :initarg :events
@@ -23,16 +34,15 @@
                  :scheduler scheduler
                  :delegate-function function))
 
-#+data-flow.features:threads
-(test mutex-component
-  (let* ((scheduler (data-flow.resource-scheduler:make-resource-scheduler 2))
-         (component (make-test-component scheduler
-                                         (lambda (component)
-                                           (events component)))))
-    (data-flow:enqueue-event component 'hello)
-    (data-flow:enqueue-event component 'there)
-    (data-flow:execute scheduler)
-    (is (equal '(hello there) (last-value component)))
-    (data-flow:enqueue-event component 'world)
-    (data-flow:execute scheduler)
-    (is (equal '(world) (last-value component)))))
+(test component-example
+  (with-every-scheduler (scheduler)
+    (let* ((component (make-test-component scheduler
+                                           (lambda (component)
+                                             (events component)))))
+      (data-flow:enqueue-event component 'hello)
+      (data-flow:enqueue-event component 'there)
+      (data-flow:execute scheduler)
+      (is (equal '(hello there) (last-value component)))
+      (data-flow:enqueue-event component 'world)
+      (data-flow:execute scheduler)
+      (is (equal '(world) (last-value component))))))
