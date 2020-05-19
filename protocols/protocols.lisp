@@ -176,9 +176,9 @@
 ;; This is a non-concurrent function.
 ;; (defgeneric run (scheduler component))
 
-(defclass component ()
-  ((%scheduler :initarg :scheduler
-               :reader scheduler)))
+;; This class is defined else where due to the way it is implemented.
+;; (defclass component ()
+;;   ())
 
 (defun make-component-lambda (component)
   (lambda ()

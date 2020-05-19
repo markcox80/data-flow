@@ -1,7 +1,9 @@
 (in-package "DATA-FLOW.COMPONENT")
 
-(defclass base-component (data-flow:component)
-  ((%event-queue :initarg :event-queue
+(defclass base-component ()
+  ((%scheduler :initarg :scheduler
+               :reader data-flow:scheduler)
+   (%event-queue :initarg :event-queue
                  :reader %event-queue)))
 
 (defmethod data-flow:enqueue-event ((component base-component) event)
