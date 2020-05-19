@@ -183,11 +183,11 @@
 (defun make-component-lambda (component)
   (lambda ()
     (let* ((scheduler (scheduler component)))
-      (assert (compare-and-change-execution-state component :scheduled :executing))
+      (assert (compare-and-change-execution-state component :scheduled :running))
 
       (process-all-events component)
       (unwind-protect (run scheduler component)
-        (assert (compare-and-change-execution-state component :executing :stopped)))
+        (assert (compare-and-change-execution-state component :running :stopped)))
 
       (when (and (requires-execution-p component)
                  (compare-and-change-execution-state component :stopped :scheduled))
