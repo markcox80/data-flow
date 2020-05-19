@@ -12,7 +12,7 @@
                                   ,@body)
                                 :number-of-threads ,number-of-threads)))
 
-(defclass test-component (data-flow:component)
+(defclass test-component-mixin ()
   ((%delegate-function :initarg :delegate-function
                        :reader delegate-function)
    (%events :initarg :events
@@ -22,23 +22,43 @@
                 :initform nil
                 :accessor last-value)))
 
-(defmethod data-flow:process-event ((component test-component) event)
+(defmethod data-flow:process-event ((component test-component-mixin) event)
   (alexandria:appendf (events component) (list event)))
 
-(defmethod data-flow:run (scheduler (component test-component))
+(defmethod data-flow:run (scheduler (component test-component-mixin))
   (setf (last-value component) (funcall (delegate-function component) component)
         (events component) nil))
 
-(defun make-test-component (scheduler function)
-  (make-instance 'test-component
-                 :scheduler scheduler
-                 :delegate-function function))
+(defclass test-component/sequential (data-flow.component::sequential-component
+                                     test-component-mixin)
+  ())
+
+#+data-flow.features:threads
+(defclass test-component/bt-mutex (data-flow.component::bt-mutex-component
+                                   test-component-mixin)
+  ())
+
+(defun call-with-every-test-component-instance (function scheduler delegate-function)
+  (loop
+    for class-name in '(test-component/sequential test-component/bt-mutex)
+    for class = (find-class class-name nil)
+    when class
+      do
+         (funcall function (make-instance class
+                                          :scheduler scheduler
+                                          :delegate-function delegate-function))))
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defmacro with-every-test-component-instance ((var scheduler delegate-function) &body body)
+    `(call-with-every-test-component-instance
+      (lambda (,var)
+        ,@body)
+      ,scheduler ,delegate-function)))
 
 (test component-example
   (with-every-scheduler (scheduler)
-    (let* ((component (make-test-component scheduler
-                                           (lambda (component)
-                                             (events component)))))
+    (with-every-test-component-instance (component scheduler (lambda (component)
+                                                               (events component)))
       (data-flow:enqueue-event component 'hello)
       (data-flow:enqueue-event component 'there)
       (data-flow:execute scheduler)
