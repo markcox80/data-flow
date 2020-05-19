@@ -92,8 +92,9 @@
 
 (defsystem "data-flow/components/tests"
   :author "Mark Cox"
-  :description "tests for the data-flow/components system."
+  :description "Tests for the data-flow/components system."
   :depends-on ("data-flow/tests/common"
+               "data-flow/schedulers/tests"
                "data-flow/components")
   :serial t
   :components ((:module "components/tests"
