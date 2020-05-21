@@ -22,6 +22,10 @@
                 :initform nil
                 :accessor last-value)))
 
+(defmethod reset ((component test-component-mixin))
+  (setf (events component) nil
+        (last-value component) nil))
+
 (defmethod data-flow:process-event ((component test-component-mixin) event)
   (alexandria:appendf (events component) (list event)))
 
@@ -60,7 +64,7 @@
       ,scheduler (lambda ()
                    ,make-delegate-function))))
 
-(test component-example
+(test single-component
   (with-every-scheduler (scheduler)
     (with-every-test-component-instance (component scheduler (lambda (component)
                                                                (events component)))
@@ -71,3 +75,24 @@
       (data-flow:enqueue-event component 'world)
       (data-flow:execute scheduler)
       (is (equal '(world) (last-value component))))))
+
+(defun make-test-lambda ()
+  (let* ((invocation-count 0))
+    (lambda (component)
+      (when (zerop invocation-count)
+        (data-flow:enqueue-event component invocation-count))
+      (incf invocation-count)
+      (append (last-value component)
+              (events component)))))
+
+(test single-component/events-occuring-during-exection
+  (with-every-scheduler (scheduler)
+    (setf scheduler (data-flow.resource-scheduler:make-resource-scheduler 1))
+    (with-every-test-component-instance (component scheduler (make-test-lambda))
+      (data-flow:enqueue-event component 'hello)
+      (data-flow:execute scheduler)
+      (is (equalp '(hello 0) (last-value component)))
+      (reset component)
+      (is-true (null (last-value component)))
+      (data-flow:execute scheduler)
+      (is-true (null (last-value component))))))
