@@ -160,9 +160,9 @@
                                ((:paused :executing1)
                                 (incf (%queued-count scheduler))
                                 (%scheduled-queue scheduler))
-                               ((:executing
-                                 (incf (%remaining-count scheduler))
-                                 (%executing-queue scheduler))))
+                               (:executing
+                                (incf (%remaining-count scheduler))
+                                (%executing-queue scheduler)))
                              (list runnable required-resources))
     (make-resource-scheduler-state (%remaining-count scheduler)
                                    (%queued-count scheduler)
