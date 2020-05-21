@@ -38,7 +38,11 @@
                                    test-component-mixin)
   ())
 
-(defun call-with-every-test-component-instance (function scheduler delegate-function)
+(defclass test-component (data-flow:component
+                          test-component-mixin)
+  ())
+
+(defun call-with-every-test-component-instance (function scheduler make-delegate-function)
   (loop
     for class-name in '(test-component/sequential test-component/bt-mutex)
     for class = (find-class class-name nil)
@@ -46,14 +50,15 @@
       do
          (funcall function (make-instance class
                                           :scheduler scheduler
-                                          :delegate-function delegate-function))))
+                                          :delegate-function (funcall make-delegate-function)))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defmacro with-every-test-component-instance ((var scheduler delegate-function) &body body)
+  (defmacro with-every-test-component-instance ((var scheduler make-delegate-function) &body body)
     `(call-with-every-test-component-instance
       (lambda (,var)
         ,@body)
-      ,scheduler ,delegate-function)))
+      ,scheduler (lambda ()
+                   ,make-delegate-function))))
 
 (test component-example
   (with-every-scheduler (scheduler)
