@@ -116,3 +116,13 @@
       (data-flow:execute scheduler)
       (is (equalp t (last-value source)))
       (is (equalp '(1 2 3 4 5 6 7 8 9 10) (last-value sink))))))
+
+(test execution-state
+  (with-every-scheduler (scheduler)
+    (with-every-test-component-instance (component scheduler (lambda (component)
+                                                               (data-flow:execution-state component)))
+      (is (eql :stopped (data-flow:execution-state component)))
+      (data-flow:enqueue-event component 0)
+      (is (eql :scheduled (data-flow:execution-state component)))
+      (data-flow:execute scheduler)
+      (is (eql :running (last-value component))))))
