@@ -128,3 +128,16 @@
       (is-false (data-flow:executingp scheduler))
       (is-true (data-flow:wait-until-finished scheduler))
       (is-true (every #'(lambda (x) (eql x 1)) results)))))
+
+(test schedule-during-execution
+  (do-schedulers (scheduler)
+    (let* ((results (make-array 10 :initial-element nil)))
+      (data-flow:schedule scheduler (lambda ()
+                                      (dotimes (i (length results))
+                                        (let* ((index i))
+                                          (data-flow:schedule scheduler (lambda ()
+                                                                          (setf (elt results index) t)))))))
+      (data-flow:execute scheduler)
+      (is-true (every #'(lambda (x)
+                          (eql x t))
+                      results)))))
