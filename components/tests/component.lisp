@@ -76,7 +76,7 @@
       (data-flow:execute scheduler)
       (is (equal '(world) (last-value component))))))
 
-(test single-component/events-occuring-during-exection
+(test single-component/events-occurring-during-exection
   (flet ((make-test-lambda ()
            (let* ((invocation-count 0))
              (lambda (component)
