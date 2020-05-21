@@ -95,3 +95,24 @@
         (is-true (null (last-value component)))
         (data-flow:execute scheduler)
         (is-true (null (last-value component)))))))
+
+(test multiple-components
+  (with-every-scheduler (scheduler)
+    (let* ((sink (make-instance 'test-component
+                                :scheduler scheduler
+                                :delegate-function (lambda (component)
+                                                     (append (last-value component)
+                                                             (loop
+                                                               for value in (events component)
+                                                               collect (incf value))))))
+           (source (make-instance 'test-component
+                                  :scheduler scheduler
+                                  :delegate-function (lambda (component)
+                                                       (declare (ignore component))
+                                                       (dotimes (i 10)
+                                                         (data-flow:enqueue-event sink i))
+                                                       t))))
+      (data-flow:schedule scheduler source)
+      (data-flow:execute scheduler)
+      (is (equalp t (last-value source)))
+      (is (equalp '(1 2 3 4 5 6 7 8 9 10) (last-value sink))))))
