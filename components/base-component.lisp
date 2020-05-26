@@ -18,3 +18,16 @@
 
 (defmethod data-flow:requires-execution-p or ((component base-component))
   (not (data-flow.queue:emptyp (%event-queue component))))
+
+(defmethod data-flow:make-component-lambda ((component base-component))
+  (lambda ()
+    (assert (data-flow:compare-and-change-execution-state component :scheduled :running))
+
+    (data-flow:process-all-events component)
+    (unwind-protect (data-flow:run component)
+      (assert (data-flow:compare-and-change-execution-state component :running :stopped)))
+
+    (when (and (data-flow:requires-execution-p component)
+               (data-flow:compare-and-change-execution-state component :stopped :scheduled))
+      (data-flow:schedule (data-flow:scheduler component)
+                          (data-flow:make-component-lambda component)))))

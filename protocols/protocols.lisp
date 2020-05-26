@@ -179,15 +179,4 @@
 ;; (defclass component ()
 ;;   ())
 
-(defun make-component-lambda (component)
-  (lambda ()
-    (assert (compare-and-change-execution-state component :scheduled :running))
-
-    (process-all-events component)
-    (unwind-protect (run component)
-      (assert (compare-and-change-execution-state component :running :stopped)))
-
-    (when (and (requires-execution-p component)
-               (compare-and-change-execution-state component :stopped :scheduled))
-      (schedule (scheduler component)
-                (make-component-lambda component)))))
+(defgeneric make-component-lambda (component))
