@@ -173,7 +173,7 @@
 ;; the component during execution of a component's RUN method.
 ;;
 ;; This is a non-concurrent function.
-;; (defgeneric run (scheduler component))
+;; (defgeneric run (component))
 
 ;; This class is defined else where due to the way it is implemented.
 ;; (defclass component ()
