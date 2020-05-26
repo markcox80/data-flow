@@ -189,5 +189,5 @@
 
     (when (and (requires-execution-p component)
                (compare-and-change-execution-state component :stopped :scheduled))
-      (let* ((scheduler (scheduler component)))
-        (schedule scheduler (make-component-lambda component))))))
+      (schedule (scheduler component)
+                (make-component-lambda component)))))
