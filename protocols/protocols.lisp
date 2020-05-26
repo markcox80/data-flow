@@ -152,7 +152,8 @@
 (defgeneric requires-execution-p (component)
   (:method-combination or))
 
-;; Perform the action of the component.
+;; Return a function object which performs the action of the
+;; component.
 ;;
 ;; The following must be executed immediately before executing a
 ;; component's RUN method:
@@ -173,10 +174,9 @@
 ;; the component during execution of a component's RUN method.
 ;;
 ;; This is a non-concurrent function.
-;; (defgeneric run (component))
+
+(defgeneric make-component-lambda (component))
 
 ;; This class is defined else where due to the way it is implemented.
 ;; (defclass component ()
 ;;   ())
-
-(defgeneric make-component-lambda (component))
