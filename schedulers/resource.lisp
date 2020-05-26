@@ -27,7 +27,7 @@
     do
        (setf last-resources resources
              last-error nil)
-       (handler-case (data-flow:run scheduler runnable)
+       (handler-case (data-flow:run runnable)
          (error (e)
            (setf last-error e)))))
 

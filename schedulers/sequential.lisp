@@ -94,7 +94,7 @@
                           internal-time-units-per-second)
                        seconds)))
     do
-       (handler-case (data-flow:run scheduler (data-flow.queue:dequeue executing-queue))
+       (handler-case (data-flow:run (data-flow.queue:dequeue executing-queue))
          (error (c)
            (setf (error-condition scheduler) c
                  (state scheduler) :executing1)))

@@ -29,7 +29,7 @@
 (defmethod data-flow:process-event ((component test-component-mixin) event)
   (alexandria:appendf (events component) (list event)))
 
-(defmethod data-flow:run (scheduler (component test-component-mixin))
+(defmethod data-flow:run ((component test-component-mixin))
   (setf (last-value component) (funcall (delegate-function component) component)
         (events component) nil))
 

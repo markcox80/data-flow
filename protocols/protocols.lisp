@@ -18,10 +18,9 @@
 
 ;;;; Scheduler
 
-(defgeneric run (scheduler runnable))
+(defgeneric run (runnable))
 
-(defmethod run (scheduler (function function))
-  (declare (ignore scheduler))
+(defmethod run ((function function))
   (funcall function))
 
 (defclass scheduler ()
@@ -182,13 +181,13 @@
 
 (defun make-component-lambda (component)
   (lambda ()
-    (let* ((scheduler (scheduler component)))
-      (assert (compare-and-change-execution-state component :scheduled :running))
+    (assert (compare-and-change-execution-state component :scheduled :running))
 
-      (process-all-events component)
-      (unwind-protect (run scheduler component)
-        (assert (compare-and-change-execution-state component :running :stopped)))
+    (process-all-events component)
+    (unwind-protect (run component)
+      (assert (compare-and-change-execution-state component :running :stopped)))
 
-      (when (and (requires-execution-p component)
-                 (compare-and-change-execution-state component :stopped :scheduled))
+    (when (and (requires-execution-p component)
+               (compare-and-change-execution-state component :stopped :scheduled))
+      (let* ((scheduler (scheduler component)))
         (schedule scheduler (make-component-lambda component))))))
