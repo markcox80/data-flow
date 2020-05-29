@@ -148,7 +148,7 @@
 ;; Return T if the component has events which have not been processed
 ;; by the component.
 ;;
-;; This is a non-concurrent function.
+;; This is a concurrent function.
 (defgeneric requires-execution-p (component)
   (:method-combination or))
 
