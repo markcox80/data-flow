@@ -28,3 +28,7 @@
       (when (eql %execution-state old-state)
         (setf %execution-state new-state)
         t))))
+
+(defmethod data-flow:requires-execution-p :around ((component bt-mutex-component))
+  (bordeaux-threads:with-lock-held ((lock component))
+    (call-next-method)))
