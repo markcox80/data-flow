@@ -11,6 +11,7 @@
 (defgeneric dequeue (queue)
   (:documentation "Returns (VALUES OBJECT T) from QUEUE if the queue
   has an object available. Otherwise (VALUES NIL NIL)."))
+(defgeneric clear (queue))
 
 (defmacro doqueue ((var queue) &body body)
   (alexandria:with-gensyms (object? queue-var start-tag end-tag)
