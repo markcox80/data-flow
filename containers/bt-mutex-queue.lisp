@@ -35,3 +35,7 @@
 (defmethod data-flow.queue:emptyp ((queue bt-mutex-queue))
   (bordeaux-threads:with-lock-held ((lock queue))
     (data-flow.queue:emptyp (inner-queue queue))))
+
+(defmethod data-flow.queue:clear ((queue bt-mutex-queue))
+  (bordeaux-threads:with-lock-held ((lock queue))
+    (data-flow.queue:clear (inner-queue queue))))

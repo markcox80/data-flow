@@ -4,7 +4,8 @@
            "EMPTYP"
            "ENQUEUE"
            "DEQUEUE"
-           "DOQUEUE"))
+           "DOQUEUE"
+           "CLEAR"))
 
 (defpackage "DATA-FLOW.LINKED-LIST"
   (:use "COMMON-LISP")
