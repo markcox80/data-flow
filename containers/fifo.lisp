@@ -34,3 +34,9 @@
         (t
          (values (pop (start fifo))
                  t))))
+
+(defmethod data-flow.queue:clear ((fifo fifo))
+  (let ((cons (cons nil nil)))
+    (setf (start fifo) cons
+          (end fifo) cons))
+  (values))
