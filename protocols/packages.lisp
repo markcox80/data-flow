@@ -40,4 +40,46 @@
 
   ;; Component protocol implementations
   (:export "BASIC-COMPONENT"
-           "STANDARD-COMPONENT"))
+           "STANDARD-COMPONENT")
+
+  ;; Port protocol
+  (:export "PORT"
+           "PORTP"
+           "CLOSE-PORT"
+           "PORT-CLOSED-P"
+
+           "DISCONNECT-PORT"
+
+           "PORT-ERROR"
+           "PORT-CLOSED-ERROR")
+
+  ;; Input Port protocol
+  (:export "INPUT-PORT"
+           "INPUT-PORT-P"
+           "MAKE-INPUT-PORT"
+           "READ-VALUE"
+           "NO-DATA-AVAILABLE-ERROR")
+
+  ;; Output Port protocol
+  (:export "OUTPUT-PORT"
+           "OUTPUT-PORT-P"
+           "MAKE-OUTPUT-PORT"
+           "WRITE-VALUE"
+           "SPACE-AVAILABLE-P"
+           "AVAILABLE-SPACE"
+           "TOTAL-SPACE"
+           "*DEFAULT-TOTAL-SPACE*"
+           "NO-SPACE-AVAILABLE-ERROR")
+
+  ;; Connection protocol
+  (:export "ALREADY-CONNECTED-ERROR"
+
+           "INPUT-PORT"
+           "INPUT-COMPONENT"
+           "OUTPUT-PORT"
+           "OUTPUT-COMPONENT"
+
+           "CONNECTION"
+           "CONNECTEDP"
+
+           "CONNECT-PORTS"))
