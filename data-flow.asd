@@ -57,6 +57,7 @@
                 :components ((:file "packages")
                              (:file "basic-component")
                              (:file "disconnected-port")
+                             (:file "standard-port")
                              (:file "standard-component")))))
 
 (defsystem "data-flow"

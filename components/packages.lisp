@@ -11,3 +11,16 @@
   (:export "DISCONNECTED-PORT"
            "DISCONNECTED-INPUT-PORT"
            "DISCONNECTED-OUTPUT-PORT"))
+
+(defpackage "DATA-FLOW.COMPONENT.STANDARD-PORT"
+  (:use "COMMON-LISP")
+  (:export "STANDARD-PORT"
+           "STANDARD-INPUT-PORT"
+           "STANDARD-OUTPUT-PORT"
+
+           "STANDARD-PORT-COMPONENT-MIXIN"
+           "PORT-EVENT"
+           "VALUE-WRITTEN-EVENT"
+           "VALUE-READ-EVENT"
+           "PORT-CLOSED-EVENT"
+           "PORT-DISCONNECTED-EVENT"))
