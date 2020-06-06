@@ -33,6 +33,20 @@
                              (:file "sequential")
                              (:file "resource" :if-feature data-flow.features:threads)))))
 
+(defsystem "data-flow/sequential-object"
+  :author "Mark Cox"
+  :description "Utilities for linearizing function calls."
+  :serial t
+  :depends-on ("data-flow/containers")
+  :components ((:module "sequential-object"
+                :serial t
+                :components ((:file "packages")
+                             (:file "protocols")
+                             (:file "single-thread")
+                             (:file "parallel")
+                             (:file "bt" :if-feature data-flow.features:threads)
+                             (:file "sequential-object")))))
+
 (defsystem "data-flow/components"
   :author "Mark Cox"
   :description "Component implementations for the data-flow system."
