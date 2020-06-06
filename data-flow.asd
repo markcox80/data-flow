@@ -105,6 +105,17 @@
                              (:file "parallel" :if-feature data-flow.features:threads)
                              (:file "resource" :if-feature data-flow.features:threads)))))
 
+(defsystem "data-flow/sequential-object/tests"
+  :author "Mark Cox"
+  :description "An abstraction for linearzing operations on an object."
+  :depends-on ("data-flow/tests/common"
+               "data-flow/sequential-object")
+  :serial t
+  :components ((:module "sequential-object/tests"
+                :serial t
+                :components ((:file "packages")
+                             (:file "sequential-object")))))
+
 (defsystem "data-flow/components/tests"
   :author "Mark Cox"
   :description "Tests for the data-flow/components system."
@@ -123,4 +134,5 @@
   :depends-on ("data-flow/tests/common"
                "data-flow/containers/tests"
                "data-flow/schedulers/tests"
+               "data-flow/sequential-object/tests"
                "data-flow/components/tests"))
