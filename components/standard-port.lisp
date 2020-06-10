@@ -171,7 +171,10 @@
    (%next-port-index :initform 0
                      :accessor %next-port-index)
    (%disconnect-queue :initform (data-flow.fifo:make-fifo)
-                      :reader %disconnect-queue)))
+                      :reader %disconnect-queue)
+   (%sequential-object :initarg :sequential-object
+                       :initform (make-instance 'data-flow.sequential-object:sequential-object)
+                       :reader %sequential-object)))
 
 (defmethod data-flow:run :before ((component standard-port-component-mixin))
   ;; A component which does nothing shall not be executed again unless
@@ -277,39 +280,59 @@
                       :reader data-flow:output-component)))
 
 (defmethod data-flow:connect-ports ((input-component data-flow.component.standard-port:standard-port-component-mixin)
-                                    (input-port data-flow.component.disconnected-port:disconnected-input-port)
+                                    input-port
                                     (output-component data-flow.component.standard-port:standard-port-component-mixin)
-                                    (output-port data-flow.component.disconnected-port:disconnected-output-port)
+                                    output-port
                                     &key &allow-other-keys)
-  (let* ((connection (make-instance 'standard-port-connection
-                                    :input-port input-port
-                                    :input-component input-component
-                                    :output-port output-port
-                                    :output-component output-component)))
-    (change-class input-port 'data-flow.component.standard-port:standard-input-port
-                  :component input-component
-                  :port-index (incf (%next-port-index input-component))
-                  :remote-port output-port
-                  :remote-component output-component
-                  :connection connection
-                  :closedp nil)
+  (flet ((call-linearized (function)
+           (let* ((o1 (%sequential-object input-component))
+                  (o2 (%sequential-object output-component)))
+             (if (eql o1 o2)
+                 (data-flow.sequential-object:linearized-apply function o1)
+                 (data-flow.sequential-object:linearize o1
+                   (data-flow.sequential-object:linearized-apply function o2))))))
+    (macrolet ((linearize (&body body)
+                 `(call-linearized (lambda () ,@body))))
+      (let* ((connection (make-instance 'standard-port-connection
+                                        :input-port input-port
+                                        :input-component input-component
+                                        :output-port output-port
+                                        :output-component output-component)))
+        (linearize
+          ;; Check that a call hasn't already succeeded.
+          (unless (typep input-port 'data-flow.component.disconnected-port:disconnected-port)
+            (error 'data-flow:already-connected-error :port input-port))
+          (unless (typep output-port 'data-flow.component.disconnected-port:disconnected-port)
+            (error 'data-flow:already-connected-error :port output-port))
 
-    (change-class output-port 'data-flow.component.standard-port:standard-output-port
-                  :component output-component
-                  :port-index (incf (%next-port-index output-component))
-                  :remote-port input-port
-                  :remote-component input-component
-                  :connection connection
-                  :closedp nil
-                  :total-space (data-flow:total-space output-port)
-                  :available-space (data-flow:total-space output-port))
+          (let* ((port-index (%next-port-index input-component)))
+            (incf (%next-port-index input-component))
+            (change-class input-port 'standard-input-port
+                          :component input-component
+                          :port-index port-index
+                          :remote-port output-port
+                          :remote-component output-component
+                          :connection connection
+                          :closedp nil))
 
-    connection))
+          (let* ((port-index (%next-port-index output-component)))
+            (incf (%next-port-index output-component))
+            (change-class output-port 'standard-output-port
+                          :component output-component
+                          :port-index port-index
+                          :remote-port input-port
+                          :remote-component input-component
+                          :connection connection
+                          :closedp nil
+                          :total-space (data-flow:total-space output-port)
+                          :available-space (data-flow:total-space output-port))))
+
+        connection))))
 
 (defmethod data-flow:connect-ports ((output-component data-flow.component.standard-port:standard-port-component-mixin)
-                                    (output-port data-flow.component.disconnected-port:disconnected-output-port)
+                                    output-port
                                     (input-component data-flow.component.standard-port:standard-port-component-mixin)
-                                    (input-port data-flow.component.disconnected-port:disconnected-input-port)
+                                    input-port
                                     &rest args &key &allow-other-keys)
   (apply #'data-flow:connect-ports
          input-component
