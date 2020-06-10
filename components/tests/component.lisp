@@ -33,17 +33,17 @@
   (setf (last-value component) (funcall (delegate-function component) component)
         (events component) nil))
 
-(defclass test-component/sequential (data-flow.component::sequential-component
-                                     test-component-mixin)
+(defclass test-component/sequential (test-component-mixin
+                                     data-flow.component::sequential-component)
   ())
 
 #+data-flow.features:threads
-(defclass test-component/bt-mutex (data-flow.component::bt-mutex-component
-                                   test-component-mixin)
+(defclass test-component/bt-mutex (test-component-mixin
+                                   data-flow.component::bt-mutex-component)
   ())
 
-(defclass test-component (data-flow:component
-                          test-component-mixin)
+(defclass test-component (test-component-mixin
+                          data-flow:component)
   ())
 
 (defun call-with-every-test-component-instance (function scheduler make-delegate-function)
