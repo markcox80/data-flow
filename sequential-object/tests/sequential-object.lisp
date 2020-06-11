@@ -57,14 +57,13 @@
              (threads (loop
                         for thread-index from 0 below 10
                         collect
-                        (bt:make-thread (let ((thread-index thread-index))
-                                          (lambda ()
-                                            (sleep 0.25)
-                                            (loop
-                                              while (data-flow.sequential-object:linearize object
-                                                      (when (< index 100000)
-                                                        (incf value (expt index 0.1))
-                                                        (incf index)
-                                                        t)))))))))
+                        (bt:make-thread (lambda ()
+                                          (sleep 0.25)
+                                          (loop
+                                            while (data-flow.sequential-object:linearize object
+                                                    (when (< index 100000)
+                                                      (incf value (expt index 0.1))
+                                                      (incf index)
+                                                      t))))))))
         (map nil #'bordeaux-threads:join-thread threads)
         (is (= expected value))))))
