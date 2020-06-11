@@ -127,7 +127,8 @@
                 :serial t
                 :components ((:file "packages")
                              (:file "component")
-                             (:file "disconnected-port")))))
+                             (:file "disconnected-port")
+                             (:file "standard-port")))))
 
 (defsystem "data-flow/tests"
   :author "Mark Cox"
