@@ -36,4 +36,8 @@
            "PROCESS-ALL-EVENTS"
            "PROCESS-EVENT"
            "REQUIRES-EXECUTION-P"
-           "RUN"))
+           "RUN")
+
+  ;; Component protocol implementations
+  (:export "BASIC-COMPONENT"
+           "STANDARD-COMPONENT"))
