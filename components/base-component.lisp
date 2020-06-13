@@ -1,6 +1,6 @@
 (in-package "DATA-FLOW.COMPONENT")
 
-(defclass base-component ()
+(defclass base-component (data-flow:component)
   ((%scheduler :initarg :scheduler
                :reader data-flow:scheduler)
    (%event-queue :initarg :event-queue
