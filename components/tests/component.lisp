@@ -12,7 +12,7 @@
                                   ,@body)
                                 :number-of-threads ,number-of-threads)))
 
-(defclass test-component-mixin ()
+(defclass test-component (data-flow:basic-component)
   ((%delegate-function :initarg :delegate-function
                        :reader delegate-function)
    (%events :initarg :events
@@ -22,47 +22,21 @@
                 :initform nil
                 :accessor last-value)))
 
-(defmethod reset ((component test-component-mixin))
+(defmethod reset ((component test-component))
   (setf (events component) nil
         (last-value component) nil))
 
-(defmethod data-flow:process-event ((component test-component-mixin) event)
+(defmethod data-flow:process-event ((component test-component) event)
   (alexandria:appendf (events component) (list event)))
 
-(defmethod data-flow:run ((component test-component-mixin))
+(defmethod data-flow:run ((component test-component))
   (setf (last-value component) (funcall (delegate-function component) component)
         (events component) nil))
 
-(defclass test-component/sequential (test-component-mixin
-                                     data-flow.component::sequential-component)
-  ())
-
-#+data-flow.features:threads
-(defclass test-component/bt-mutex (test-component-mixin
-                                   data-flow.component::bt-mutex-component)
-  ())
-
-(defclass test-component (test-component-mixin
-                          data-flow:basic-component)
-  ())
-
-(defun call-with-every-test-component-instance (function scheduler make-delegate-function)
-  (loop
-    for class-name in '(test-component/sequential test-component/bt-mutex)
-    for class = (find-class class-name nil)
-    when class
-      do
-         (funcall function (make-instance class
-                                          :scheduler scheduler
-                                          :delegate-function (funcall make-delegate-function)))))
-
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defmacro with-every-test-component-instance ((var scheduler make-delegate-function) &body body)
-    `(call-with-every-test-component-instance
-      (lambda (,var)
-        ,@body)
-      ,scheduler (lambda ()
-                   ,make-delegate-function))))
+(defun make-test-component (scheduler delegate-function)
+  (make-instance 'test-component
+                 :scheduler scheduler
+                 :delegate-function delegate-function))
 
 (test component-type
   (is-true (subtypep 'data-flow:basic-component 'data-flow:component))
@@ -70,8 +44,8 @@
 
 (test single-component
   (with-every-scheduler (scheduler)
-    (with-every-test-component-instance (component scheduler (lambda (component)
-                                                               (events component)))
+    (let* ((component (make-test-component scheduler (lambda (component)
+                                                       (events component)))))
       (data-flow:enqueue-event component 'hello)
       (data-flow:enqueue-event component 'there)
       (data-flow:execute scheduler)
@@ -91,7 +65,7 @@
                        (events component))))))
     (with-every-scheduler (scheduler)
       (setf scheduler (data-flow.resource-scheduler:make-resource-scheduler 1))
-      (with-every-test-component-instance (component scheduler (make-test-lambda))
+      (let* ((component (make-test-component scheduler (make-test-lambda))))
         (data-flow:enqueue-event component 'hello)
         (data-flow:execute scheduler)
         (is (equalp '(hello 0) (last-value component)))
@@ -123,8 +97,8 @@
 
 (test execution-state
   (with-every-scheduler (scheduler)
-    (with-every-test-component-instance (component scheduler (lambda (component)
-                                                               (data-flow:execution-state component)))
+    (let ((component (make-test-component scheduler (lambda (component)
+                                                      (data-flow:execution-state component)))))
       (is (eql :stopped (data-flow:execution-state component)))
       (data-flow:enqueue-event component 0)
       (is (eql :scheduled (data-flow:execution-state component)))
