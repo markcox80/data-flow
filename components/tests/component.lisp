@@ -43,7 +43,7 @@
   ())
 
 (defclass test-component (test-component-mixin
-                          data-flow:component)
+                          data-flow:basic-component)
   ())
 
 (defun call-with-every-test-component-instance (function scheduler make-delegate-function)
@@ -63,6 +63,10 @@
         ,@body)
       ,scheduler (lambda ()
                    ,make-delegate-function))))
+
+(test component-type
+  (is-true (subtypep 'data-flow:basic-component 'data-flow:component))
+  (is-true (subtypep 'data-flow:standard-component 'data-flow:basic-component)))
 
 (test single-component
   (with-every-scheduler (scheduler)
