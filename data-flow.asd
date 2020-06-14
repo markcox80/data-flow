@@ -51,7 +51,7 @@
   :author "Mark Cox"
   :description "Component implementations for the data-flow system."
   :serial t
-  :depends-on ("data-flow/protocols" "data-flow/containers")
+  :depends-on ("data-flow/protocols" "data-flow/containers" "data-flow/sequential-object")
   :components ((:module "components"
                 :serial t
                 :components ((:file "packages")
