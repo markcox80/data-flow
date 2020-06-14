@@ -31,7 +31,7 @@
 
 (defclass bt-sequential-object (parallel-sequential-object)
   ((%queue :initarg :queue
-           :initform (data-flow.bt-mutex-queue:make-bt-mutex-queue (data-flow.fifo:make-fifo))
+           :initform (data-flow.bt-mutex-queue:make-srmw-bt-mutex-queue (data-flow.fifo:make-fifo))
            :reader task-queue)
    (%lock :initarg :lock
           :initform (bordeaux-threads:make-lock "DATA-FLOW.SEQUENTIAL-OBJECT::BT-SEQUENTIAL-OBJECT")
