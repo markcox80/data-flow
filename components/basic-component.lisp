@@ -2,7 +2,7 @@
 
 (defun make-basic-component-event-queue ()
   #+data-flow.features:threads
-  (data-flow.bt-mutex-queue:make-bt-mutex-queue (data-flow.fifo:make-fifo))
+  (data-flow.bt-mutex-queue:make-srmw-bt-mutex-queue (data-flow.fifo:make-fifo))
   #-data-flow.features:threads
   (data-flow.fifo:make-fifo))
 
