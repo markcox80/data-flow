@@ -39,10 +39,6 @@
   (data-flow.queue:doqueue (event (%event-queue component))
     (data-flow:process-event component event)))
 
-(defmethod data-flow:requires-execution-p :around ((component basic-component))
-  (data-flow.sequential-object:linearize component
-    (call-next-method)))
-
 (defmethod data-flow:requires-execution-p or ((component basic-component))
   (not (data-flow.queue:emptyp (%event-queue component))))
 
@@ -51,10 +47,12 @@
     (assert (data-flow:compare-and-change-execution-state component :scheduled :running))
 
     (data-flow:process-all-events component)
-    (unwind-protect (data-flow:run component)
-      (assert (data-flow:compare-and-change-execution-state component :running :stopped)))
+    (let ((required? (unwind-protect (progn
+                                       (data-flow:run component)
+                                       (data-flow:requires-execution-p component))
+                       (assert (data-flow:compare-and-change-execution-state component :running :stopped)))))
 
-    (when (and (data-flow:requires-execution-p component)
-               (data-flow:compare-and-change-execution-state component :stopped :scheduled))
-      (data-flow:schedule (data-flow:scheduler component)
-                          (data-flow:make-component-lambda component)))))
+      (when (and required?
+                 (data-flow:compare-and-change-execution-state component :stopped :scheduled))
+        (data-flow:schedule (data-flow:scheduler component)
+                            (data-flow:make-component-lambda component))))))
