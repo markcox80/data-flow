@@ -51,14 +51,12 @@
   :author "Mark Cox"
   :description "Component implementations for the data-flow system."
   :serial t
-  :depends-on ("data-flow/protocols" "data-flow/containers")
+  :depends-on ("data-flow/protocols" "data-flow/containers" "data-flow/sequential-object")
   :components ((:module "components"
                 :serial t
                 :components ((:file "packages")
-                             (:file "base-component")
-                             (:file "sequential-component")
-                             (:file "bt-mutex-component" :if-feature data-flow.features:threads)
-                             (:file "component")))))
+                             (:file "basic-component")
+                             (:file "standard-component")))))
 
 (defsystem "data-flow"
   :author "Mark Cox"

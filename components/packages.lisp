@@ -1,5 +1,7 @@
 (defpackage "DATA-FLOW.COMPONENT"
   (:use "COMMON-LISP")
   (:import-from "DATA-FLOW"
-                "COMPONENT")
-  (:export "COMPONENT"))
+                "BASIC-COMPONENT"
+                "STANDARD-COMPONENT")
+  (:export "BASIC-COMPONENT"
+           "STANDARD-COMPONENT"))

@@ -177,6 +177,19 @@
 
 (defgeneric make-component-lambda (component))
 
-;; This class is defined else where due to the way it is implemented.
-;; (defclass component ()
+(defclass component ()
+  ())
+
+;; The BASIC-COMPONENT class provides an implementation of the
+;; component protocol. It has no support for ports.
+;;
+;; This class is defined elsewhere due to the way it is implemented.
+;; (defclass basic-component (component)
+;;   ())
+
+;; The STANDARD-COMPONENT class is a subclass of BASIC-COMPONENT. It
+;; includes support for ports.
+;;
+;; This class is defined elsewhere due to the way it is implemented.
+;; (defclass standard-component (basic-component)
 ;;   ())
