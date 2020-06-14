@@ -56,9 +56,7 @@
                 :serial t
                 :components ((:file "packages")
                              (:file "base-component")
-                             (:file "sequential-component")
-                             (:file "bt-mutex-component" :if-feature data-flow.features:threads)
-                             (:file "component")))))
+                             (:file "standard-component")))))
 
 (defsystem "data-flow"
   :author "Mark Cox"
