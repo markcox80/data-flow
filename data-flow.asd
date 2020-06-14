@@ -55,7 +55,7 @@
   :components ((:module "components"
                 :serial t
                 :components ((:file "packages")
-                             (:file "base-component")
+                             (:file "basic-component")
                              (:file "standard-component")))))
 
 (defsystem "data-flow"
