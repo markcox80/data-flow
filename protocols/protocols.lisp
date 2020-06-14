@@ -302,5 +302,5 @@
 (defclass connection ()
   ())
 
-;; This is a concurrent function.
+;; This is a concurrent function with respect to the components.
 (defgeneric connect-ports (component1 port1 component2 port2 &key &allow-other-keys))
