@@ -43,7 +43,7 @@
                  :reader data-flow:total-space)))
 
 (defmethod data-flow:write-value (value (port disconnected-output-port) &key (errorp t) no-space-value closed-value &allow-other-keys)
-  (declare (ignore no-space-value))
+  (declare (ignore value no-space-value))
   (if errorp
       (error 'data-flow:port-closed-error :port port)
       closed-value))
