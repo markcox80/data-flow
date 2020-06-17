@@ -31,8 +31,7 @@
    (%remote-component :initarg :remote-component
                       :reader %remote-component)
    (%connection :initarg :connection
-                :reader %connection
-                :reader data-flow:connection)
+                :accessor %connection)
    (%closedp :initarg :closedp
              :initform nil
              :accessor %closedp)))
@@ -54,6 +53,11 @@
 (defmethod data-flow:port-closed-p ((port standard-port))
   (data-flow:process-all-events (%component port))
   (%closedp port))
+
+(defmethod data-flow:connection ((port standard-port))
+  (data-flow:process-all-events (%component port))
+  (%connection port))
+
 (defmethod data-flow:close-port ((port standard-port))
   (data-flow:process-all-events (%component port))
   (unless (%closedp port)
