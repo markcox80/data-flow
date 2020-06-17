@@ -258,7 +258,7 @@
             (%connection port) nil)
       (when (typep port 'standard-output-port)
         (setf (%available-space port) 0))
-      (data-flow.queue:enqueue port (%disconnect-queue component))))
+      (data-flow.queue:enqueue (%disconnect-queue component) port)))
   (values))
 
 (defmethod data-flow:requires-execution-p or ((component standard-port-component-mixin))
