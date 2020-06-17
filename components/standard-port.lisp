@@ -35,8 +35,7 @@
                 :reader data-flow:connection)
    (%closedp :initarg :closedp
              :initform nil
-             :accessor %closedp
-             :reader data-flow:port-closed-p)))
+             :accessor %closedp)))
 
 (defun %unseen-events-p (port)
   (check-type port standard-port)
@@ -52,6 +51,9 @@
             0))
   value)
 
+(defmethod data-flow:port-closed-p ((port standard-port))
+  (data-flow:process-all-events (%component port))
+  (%closedp port))
 (defmethod data-flow:close-port ((port standard-port))
   (data-flow:process-all-events (%component port))
   (unless (%closedp port)
