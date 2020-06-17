@@ -338,3 +338,19 @@
          output-component
          output-port
          args))
+
+(defmethod data-flow:connect-ports ((component1 data-flow.component.standard-port:standard-port-component-mixin)
+                                    (port1 data-flow.component.standard-port:standard-port)
+                                    (component2 data-flow.component.standard-port:standard-port-component-mixin)
+                                    (port2 data-flow:port)
+                                    &key)
+  (declare (ignore component1 component2 port2))
+  (error 'data-flow:already-connected-error :port port1))
+
+(defmethod data-flow:connect-ports ((component1 data-flow.component.standard-port:standard-port-component-mixin)
+                                    (port1 data-flow:port)
+                                    (component2 data-flow.component.standard-port:standard-port-component-mixin)
+                                    (port2 data-flow.component.standard-port:standard-port)
+                                    &key)
+  (declare (ignore component1 port1 component2))
+  (error 'data-flow:already-connected-error :port port2))
