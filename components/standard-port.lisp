@@ -21,7 +21,7 @@
 
 ;;;; Standard port
 
-(defclass standard-port ()
+(defclass standard-port (data-flow:port)
   ((%component :initarg :component
                :reader %component)
    (%port-index :initarg :port-index
