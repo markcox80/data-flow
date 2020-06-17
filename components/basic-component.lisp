@@ -56,3 +56,6 @@
                  (data-flow:compare-and-change-execution-state component :stopped :scheduled))
         (data-flow:schedule (data-flow:scheduler component)
                             (data-flow:make-component-lambda component))))))
+
+(defmethod data-flow:run ((component basic-component))
+  (declare (ignore component)))
