@@ -51,6 +51,7 @@
            "DISCONNECT-PORT"
 
            "PORT-ERROR"
+           "PORT-ERROR-PORT"
            "PORT-CLOSED-ERROR")
 
   ;; Input Port protocol
