@@ -60,5 +60,6 @@
                  :inner-queue inner-queue))
 
 (defmethod data-flow.queue:enqueue ((queue srmw-bt-mutex-queue) item)
+  (declare (ignore item))
   (bordeaux-threads:with-lock-held ((writer-lock queue))
     (call-next-method)))
