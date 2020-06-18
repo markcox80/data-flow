@@ -255,3 +255,15 @@
     (data-flow:run sink)
     (is-true (typep src-port 'data-flow.component.disconnected-port:disconnected-port))
     (is-true (typep sink-port 'data-flow.component.disconnected-port:disconnected-port))))
+
+(test disconnect-output-port
+  ;; Ensure the total space is preserved.
+  (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (src (make-instance 'test-component :scheduler scheduler))
+         (src-port (data-flow:make-output-port :total-space 5))
+         (sink (make-instance 'test-component :scheduler scheduler))
+         (sink-port (data-flow:make-input-port)))
+    (data-flow:connect-ports src src-port sink sink-port)
+    (data-flow:disconnect-port src-port)
+    (is-true (typep src-port 'data-flow.component.disconnected-port:disconnected-output-port))
+    (is (= 5 (data-flow:total-space src-port)))))
