@@ -229,3 +229,15 @@
     ;; any events first. The sent port-closed-event should close the
     ;; port before the body of CLOSE-PORT can act on the port.
     (is-false (data-flow:requires-execution-p src))))
+
+(test disconnect-port-event
+  (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (src (make-instance 'test-component :scheduler scheduler))
+         (src-port (data-flow:make-output-port))
+         (sink (make-instance 'test-component :scheduler scheduler))
+         (sink-port (data-flow:make-input-port)))
+    (data-flow:connect-ports src src-port sink sink-port)
+    (data-flow:enqueue-event sink (make-instance 'data-flow.component.standard-port:port-disconnected-event
+                                                 :port sink-port))
+    (data-flow:run sink)
+    (is-true (typep (print sink-port) 'data-flow.component.disconnected-port:disconnected-port))))
