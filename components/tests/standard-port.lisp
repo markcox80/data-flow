@@ -240,4 +240,4 @@
     (data-flow:enqueue-event sink (make-instance 'data-flow.component.standard-port:port-disconnected-event
                                                  :port sink-port))
     (data-flow:run sink)
-    (is-true (typep (print sink-port) 'data-flow.component.disconnected-port:disconnected-port))))
+    (is-true (typep sink-port 'data-flow.component.disconnected-port:disconnected-port))))
