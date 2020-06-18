@@ -188,3 +188,29 @@
 
       (do-test (available-space port :output)
         (is (= data-flow:*default-total-space* (data-flow:available-space port)))))))
+
+(test close-port
+  (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (src (make-instance 'test-component :scheduler scheduler))
+         (sink (make-instance 'test-component :scheduler scheduler))
+         (src-port (data-flow:make-output-port))
+         (sink-port (data-flow:make-input-port)))
+    (data-flow:connect-ports src src-port sink sink-port)
+
+    ;; Close the sink port
+    (data-flow:close-port sink-port)
+    (is-true (data-flow:port-closed-p sink-port))
+    (is-true (data-flow:connectedp sink-port))
+    (is-true (data-flow:requires-execution-p src))
+    (is-false (data-flow:requires-execution-p sink))
+
+    ;; Check that the event is propagated to the src component.
+    (data-flow:process-all-events src) ; This is not required as port-closed-p should already call it.
+                                        ; I have put this here for my sake.
+    (is-true (data-flow:port-closed-p src-port))
+    (is-true (data-flow:connectedp src-port))
+
+    ;; Close the src-port and ensure no event is propagated to the
+    ;; sink.
+    (data-flow:close-port src-port)
+    (is-false (data-flow:requires-execution-p sink))))
