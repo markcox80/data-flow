@@ -294,3 +294,41 @@
 
     (is-true (data-flow:requires-execution-p sink))
     (is (= 3 (data-flow:read-value sink-port1)))))
+
+(test available-capacity
+  (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (src (make-instance 'test-component :scheduler scheduler))
+         (src-port (data-flow:make-output-port :total-space 2))
+         (sink (make-instance 'test-component :scheduler scheduler))
+         (sink-port (data-flow:make-input-port)))
+    (data-flow:connect-ports src src-port sink sink-port)
+    (is (= 2 (data-flow:total-space src-port)))
+    (is (= 2 (data-flow:available-space src-port)))
+    (is-true (data-flow:space-available-p src-port))
+
+    (data-flow:write-value 1 src-port)
+    (is (= 2 (data-flow:total-space src-port)))
+    (is (= 1 (data-flow:available-space src-port)))
+    (is-true (data-flow:space-available-p src-port))
+    (data-flow:write-value 2 src-port)
+    (is (= 2 (data-flow:total-space src-port)))
+    (is (= 0 (data-flow:available-space src-port)))
+    (is-false (data-flow:space-available-p src-port))
+
+    (is (= 1 (data-flow:read-value sink-port)))
+    (is (= 2 (data-flow:total-space src-port)))
+    (is (= 1 (data-flow:available-space src-port)))
+    (is-true (data-flow:available-space src-port))
+
+    (is (= 2 (data-flow:read-value sink-port)))
+    (is (= 2 (data-flow:total-space src-port)))
+    (is (= 2 (data-flow:available-space src-port)))
+    (is-true (data-flow:space-available-p src-port))
+
+    (data-flow:write-value 3 src-port)
+    (is (= 1 (data-flow:available-space src-port)))
+    (is-true (data-flow:space-available-p src-port))
+
+    (is (= 3 (data-flow:read-value sink-port)))
+    (is (= 2 (data-flow:available-space src-port)))
+    (is-true (data-flow:space-available-p src-port))))
