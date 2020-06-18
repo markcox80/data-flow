@@ -69,9 +69,10 @@
 
 (defmethod data-flow:disconnect-port ((port standard-port))
   (data-flow:process-all-events (%component port))
-  (unless (%closedp port)
+  (when (%connection port)
     (setf (%closedp port) t
-          (%unseen-events-p port) nil)
+          (%unseen-events-p port) nil
+          (%connection port) nil)
     (data-flow:enqueue-event (%remote-component port)
                              (make-instance 'port-disconnected-event :port (%remote-port port))))
   (values))
@@ -252,7 +253,7 @@
   ;; correctly.
   (let ((port (port event)))
     (check-type port standard-port)
-    (unless (%closedp port)
+    (when (%connection port)
       (setf (%closedp port) t
             (%unseen-events-p port) t
             (%connection port) nil)

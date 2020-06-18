@@ -241,3 +241,17 @@
                                                  :port sink-port))
     (data-flow:run sink)
     (is-true (typep sink-port 'data-flow.component.disconnected-port:disconnected-port))))
+
+(test disconnect-closed-port
+  (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (src (make-instance 'test-component :scheduler scheduler))
+         (src-port (data-flow:make-output-port))
+         (sink (make-instance 'test-component :scheduler scheduler))
+         (sink-port (data-flow:make-input-port)))
+    (data-flow:connect-ports src src-port sink sink-port)
+    (data-flow:close-port sink-port)
+    (data-flow:disconnect-port sink-port)
+    (data-flow:run src)
+    (data-flow:run sink)
+    (is-true (typep src-port 'data-flow.component.disconnected-port:disconnected-port))
+    (is-true (typep sink-port 'data-flow.component.disconnected-port:disconnected-port))))
