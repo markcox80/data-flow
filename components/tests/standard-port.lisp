@@ -267,3 +267,30 @@
     (data-flow:disconnect-port src-port)
     (is-true (typep src-port 'data-flow.component.disconnected-port:disconnected-output-port))
     (is (= 5 (data-flow:total-space src-port)))))
+
+(test write-read
+  (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (src (make-instance 'test-component :scheduler scheduler))
+         (src-port1 (data-flow:make-output-port :total-space 1))
+         (src-port2 (data-flow:make-output-port :total-space 1))
+         (sink (make-instance 'test-component :scheduler scheduler))
+         (sink-port1 (data-flow:make-input-port))
+         (sink-port2 (data-flow:make-input-port)))
+    (data-flow:connect-ports src src-port1 sink sink-port1)
+    (data-flow:connect-ports src src-port2 sink sink-port2)
+
+    (data-flow:write-value 1 src-port1)
+    (data-flow:write-value 2 src-port2)
+
+    (is-true (data-flow:requires-execution-p sink))
+    (is (= 1 (data-flow:read-value sink-port1)))
+    (is-true (data-flow:requires-execution-p sink))
+    (is (= 2 (data-flow:read-value sink-port2)))
+    (is-false (data-flow:requires-execution-p sink))
+
+    (is-true (data-flow:requires-execution-p src))
+
+    (data-flow:write-value 3 src-port1)
+
+    (is-true (data-flow:requires-execution-p sink))
+    (is (= 3 (data-flow:read-value sink-port1)))))
