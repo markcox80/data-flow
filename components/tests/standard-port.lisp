@@ -214,3 +214,18 @@
     ;; sink.
     (data-flow:close-port src-port)
     (is-false (data-flow:requires-execution-p sink))))
+
+(test close-port-event
+  (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (src (make-instance 'test-component :scheduler scheduler))
+         (src-port (data-flow:make-output-port))
+         (sink (make-instance 'test-component :scheduler scheduler))
+         (sink-port (data-flow:make-input-port)))
+    (data-flow:connect-ports src src-port sink sink-port)
+    (data-flow:enqueue-event sink (make-instance 'data-flow.component.standard-port:port-closed-event
+                                                 :port sink-port))
+    (data-flow:close-port sink-port)
+    ;; No event should be sent to src because CLOSE-PORT must process
+    ;; any events first. The sent port-closed-event should close the
+    ;; port before the body of CLOSE-PORT can act on the port.
+    (is-false (data-flow:requires-execution-p src))))
