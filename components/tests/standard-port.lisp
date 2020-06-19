@@ -291,6 +291,9 @@
     (is-true (data-flow:requires-execution-p src))
 
     (data-flow:write-value 3 src-port1)
+    (is-true (data-flow:requires-execution-p src))
+    (data-flow:write-value 4 src-port2)
+    (is-false (data-flow:requires-execution-p src))
 
     (is-true (data-flow:requires-execution-p sink))
     (is (= 3 (data-flow:read-value sink-port1)))))
