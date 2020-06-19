@@ -335,3 +335,39 @@
     (is (= 3 (data-flow:read-value sink-port)))
     (is (= 2 (data-flow:available-space src-port)))
     (is-true (data-flow:space-available-p src-port))))
+
+(test multiple-close-port-events
+  (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (src (make-instance 'test-component :scheduler scheduler))
+         (src-port1 (data-flow:make-output-port))
+         (src-port2 (data-flow:make-output-port))
+         (sink (make-instance 'test-component :scheduler scheduler))
+         (sink-port1 (data-flow:make-input-port))
+         (sink-port2 (data-flow:make-input-port)))
+    (data-flow:connect-ports src src-port1 sink sink-port1)
+    (data-flow:connect-ports src src-port2 sink sink-port2)
+
+    (data-flow:write-value 1 src-port1)
+    (data-flow:close-port src-port2)
+
+    (is-true (data-flow:requires-execution-p sink))
+    (is (= 1 (data-flow:read-value sink-port1)))
+    (is-true (data-flow:requires-execution-p sink))
+    (is (null (data-flow:read-value sink-port2 :errorp nil)))
+    (is-false (data-flow:requires-execution-p sink))
+
+    (is-true (data-flow:space-available-p src-port1))
+    (is-false (data-flow:requires-execution-p src))
+
+    (data-flow:close-port src-port2)
+    (is-false (data-flow:requires-execution-p sink))
+
+    (data-flow:close-port sink-port1)
+    (is-true (data-flow:requires-execution-p src))
+
+    (is-true (data-flow:port-closed-p src-port1))
+    (is-false (data-flow:requires-execution-p src) "here")
+    (is-true (data-flow:port-closed-p src-port2))
+
+    (is-true (data-flow:port-closed-p sink-port1))
+    (is-true (data-flow:port-closed-p sink-port2))))
