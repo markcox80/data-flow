@@ -50,28 +50,30 @@
             0))
   value)
 
-(defmethod data-flow:port-closed-p ((port standard-port))
+(defmethod data-flow:process-all-events ((port standard-port))
   (data-flow:process-all-events (%component port))
+  (setf (%unseen-events-p port) nil))
+
+(defmethod data-flow:port-closed-p ((port standard-port))
+  (data-flow:process-all-events port)
   (%closedp port))
 
 (defmethod data-flow:connection ((port standard-port))
-  (data-flow:process-all-events (%component port))
+  (data-flow:process-all-events port)
   (%connection port))
 
 (defmethod data-flow:close-port ((port standard-port))
-  (data-flow:process-all-events (%component port))
+  (data-flow:process-all-events port)
   (unless (%closedp port)
-    (setf (%closedp port) t
-          (%unseen-events-p port) nil)
+    (setf (%closedp port) t)
     (data-flow:enqueue-event (%remote-component port)
                              (make-instance 'port-closed-event :port (%remote-port port)))
     t))
 
 (defmethod data-flow:disconnect-port ((port standard-port))
-  (data-flow:process-all-events (%component port))
+  (data-flow:process-all-events port)
   (when (%connection port)
     (setf (%closedp port) t
-          (%unseen-events-p port) nil
           (%connection port) nil)
     (data-flow:enqueue-event (%remote-component port)
                              (make-instance 'port-disconnected-event :port (%remote-port port))))
@@ -85,8 +87,7 @@
            :reader %queue)))
 
 (defmethod data-flow:read-value ((port standard-input-port) &key (errorp t) no-data-value closed-value)
-  (data-flow:process-all-events (%component port))
-  (setf (%unseen-events-p port) nil)
+  (data-flow:process-all-events port)
 
   (with-accessors ((%remote-component %remote-component)
                    (%remote-port %remote-port)
@@ -110,9 +111,8 @@
              no-data-value)))))
 
 (defmethod data-flow:port-closed-p ((port standard-input-port))
-  (data-flow:process-all-events (%component port))
   (and (data-flow.queue:emptyp (%queue port))
-       (%closedp port)))
+       (call-next-method)))
 
 (defmethod data-flow:close-port ((port standard-input-port))
   (when (call-next-method)
@@ -131,8 +131,7 @@
                      :accessor %available-space)))
 
 (defmethod data-flow:write-value (value (port standard-output-port) &key (errorp t) no-space-value closed-value &allow-other-keys)
-  (data-flow:process-all-events (%component port))
-  (setf (%unseen-events-p port) nil)
+  (data-flow:process-all-events port)
 
   (with-accessors ((%available-space %available-space)
                    (%remote-component %remote-component)
@@ -157,8 +156,7 @@
            no-space-value))))
 
 (defmethod data-flow:available-space ((port standard-output-port))
-  (data-flow:process-all-events (%component port))
-  (setf (%unseen-events-p port) nil)
+  (data-flow:process-all-events port)
   (%available-space port))
 
 (defmethod data-flow:close-port ((port standard-output-port))
