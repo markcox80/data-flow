@@ -42,6 +42,7 @@
             (%unseen-events-integer (%component port))))
 
 (defun (setf %unseen-events-p) (value port)
+  (check-type value (member nil t))
   (check-type port standard-port)
   (setf (ldb (byte 1 (%port-index port))
              (%unseen-events-integer (%component port)))
