@@ -112,8 +112,8 @@
              no-data-value)))))
 
 (defmethod data-flow:port-closed-p ((port standard-input-port))
-  (and (data-flow.queue:emptyp (%queue port))
-       (call-next-method)))
+  (and (call-next-method)
+       (data-flow.queue:emptyp (%queue port))))
 
 (defmethod data-flow:close-port ((port standard-input-port))
   (when (call-next-method)
