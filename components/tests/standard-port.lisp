@@ -366,7 +366,7 @@
     (is-true (data-flow:requires-execution-p src))
 
     (is-true (data-flow:port-closed-p src-port1))
-    (is-false (data-flow:requires-execution-p src) "here")
+    (is-false (data-flow:requires-execution-p src))
     (is-true (data-flow:port-closed-p src-port2))
 
     (is-true (data-flow:port-closed-p sink-port1))
