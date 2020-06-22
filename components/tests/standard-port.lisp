@@ -189,6 +189,72 @@
       (do-test (available-space port :output)
         (is (= data-flow:*default-total-space* (data-flow:available-space port)))))))
 
+(test methods-see-port-events
+  (labels ((perform-test-helper (test-name port-type function)
+             (check-type port-type (member :input :output))
+             (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
+                    (src (make-instance 'test-component :scheduler scheduler))
+                    (src-port1 (data-flow:make-output-port))
+                    (src-port2 (data-flow:make-output-port))
+                    (sink (make-instance 'test-component :scheduler scheduler))
+                    (sink-port1 (data-flow:make-input-port))
+                    (sink-port2 (data-flow:make-input-port)))
+               (data-flow:connect-ports src src-port1 sink sink-port1)
+               (data-flow:connect-ports src src-port2 sink sink-port2)
+               (ecase port-type
+                 (:output
+                  (data-flow:close-port sink-port1)
+                  (data-flow:close-port sink-port2)
+                  (is-true (data-flow:requires-execution-p src))
+                  (funcall function src-port1)
+                  (is-true (data-flow:requires-execution-p src))
+                  (data-flow:close-port src-port2)
+                  (is-false (data-flow:requires-execution-p src)
+                            "The subtest ~A does not 'see' the events on one of the ports." test-name)
+                  (is-false (data-flow:requires-execution-p sink)))
+                 (:input
+                  (data-flow:close-port src-port1)
+                  (data-flow:close-port src-port2)
+                  (is-true (data-flow:requires-execution-p sink))
+                  (funcall function sink-port1)
+                  (is-true (data-flow:requires-execution-p sink))
+                  (data-flow:close-port sink-port2)
+                  (is-false (data-flow:requires-execution-p sink)
+                            "The subtest ~A does not 'see' the events on one of the ports." test-name)
+                  (is-false (data-flow:requires-execution-p src))))))
+           (perform-test (test-name port-type function)
+             (ecase port-type
+               (:both
+                (perform-test-helper test-name :input function)
+                (perform-test-helper test-name :output function))
+               ((:input :output)
+                (perform-test-helper test-name port-type function)))))
+    (macrolet ((do-test ((test-name port-var port-type) &body body)
+                 `(perform-test ',test-name ',port-type (lambda (,port-var) ,@body))))
+      (do-test (close-port port :both)
+        (data-flow:close-port port))
+
+      (do-test (port-closed-p port :both)
+        (is-true (data-flow:port-closed-p port)))
+
+      (do-test (connection port :both)
+        (is-true (typep (data-flow:connection port) 'data-flow:connection)))
+
+      (do-test (connectedp port :both)
+        (is-true (data-flow:connectedp port)))
+
+      (do-test (read-value port :input)
+        (is-true (null (data-flow:read-value port :errorp nil))))
+
+      (do-test (write-value port :output)
+        (is-true (null (data-flow:write-value 1 port :errorp nil))))
+
+      (do-test (space-available-p port :output)
+        (is-false (data-flow:space-available-p port)))
+
+      (do-test (available-space port :output)
+        (is-true (zerop (data-flow:available-space port)))))))
+
 (test close-port
   (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
          (src (make-instance 'test-component :scheduler scheduler))
