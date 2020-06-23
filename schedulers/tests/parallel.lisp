@@ -39,7 +39,7 @@
       (unwind-protect (is (= 5 (length (intersection threads (bordeaux-threads:all-threads)))))
         (is-true (data-flow:wait-until-finished scheduler))
         (data-flow:cleanup scheduler))
-      (is-true (null (intersection threads (bordeaux-threads:all-threads)))))))
+      (is-true (every (complement #'bordeaux-threads:thread-alive-p) threads)))))
 
 (test wait-until-finished
   (do-parallel-schedulers (scheduler 1)
