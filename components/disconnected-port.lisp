@@ -12,10 +12,6 @@
 (defmethod data-flow:close-port ((port disconnected-port))
   (declare (ignore port))
   (values))
-
-(defmethod data-flow:port-closed-p ((port disconnected-port))
-  (declare (ignore port))
-  t)
 
 ;;;; Disconnected Input Port
 

@@ -52,10 +52,6 @@
   (data-flow:process-all-events (%component port))
   (setf (%unseen-events-p port) nil))
 
-(defmethod data-flow:port-closed-p ((port standard-port))
-  (data-flow:process-all-events port)
-  (%closedp port))
-
 (defmethod data-flow:connection ((port standard-port))
   (data-flow:process-all-events port)
   (%connection port))
@@ -100,10 +96,6 @@
 
             (t
              no-data-value)))))
-
-(defmethod data-flow:port-closed-p ((port standard-input-port))
-  (and (call-next-method)
-       (data-flow.queue:emptyp (%queue port))))
 
 (defmethod data-flow:close-port ((port standard-input-port))
   (when (call-next-method)

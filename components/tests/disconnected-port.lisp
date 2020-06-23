@@ -19,7 +19,6 @@
   (dolist (port (list (make-instance 'data-flow.component.disconnected-port:disconnected-input-port)
                       (make-instance 'data-flow.component.disconnected-port:disconnected-output-port)))
     (is-true (data-flow:portp port))
-    (is-true (data-flow:port-closed-p port))
     (is-false (data-flow:connectedp port))
     (is-true (null (data-flow:connection port)))
     (is-true (typep port (type-of port)))))

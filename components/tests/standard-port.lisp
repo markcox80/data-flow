@@ -124,9 +124,6 @@
       (do-test (close-port port :both)
         (data-flow:close-port port))
 
-      (do-test (port-closed-p port :both)
-        (data-flow:port-closed-p port))
-
       (do-test (connection port :both)
         (is (typep (data-flow:connection port) 'data-flow:connection)))
 
@@ -190,9 +187,6 @@
       (do-test (close-port port :both)
         (data-flow:close-port port))
 
-      (do-test (port-closed-p port :both)
-        (is-true (data-flow:port-closed-p port)))
-
       (do-test (connection port :both)
         (is-true (null (data-flow:connection port))))
 
@@ -220,12 +214,10 @@
     (data-flow:connect-ports src src-port sink sink-port)
 
     (is-true (typep sink-port 'data-flow.component.standard-port:standard-input-port))
-    (is-false (data-flow:port-closed-p sink-port))
     (is-true (data-flow:connectedp sink-port))
 
     ;; Close the sink port
     (data-flow:close-port sink-port)
-    (is-true (data-flow:port-closed-p sink-port))
     (is-false (data-flow:connectedp sink-port))
     (is-true (data-flow:requires-execution-p src))
     (is-false (data-flow:requires-execution-p sink))
@@ -233,9 +225,8 @@
     (is-true (typep src-port 'data-flow.component.standard-port:standard-output-port))
 
     ;; Check that the event is propagated to the src component.
-    (data-flow:process-all-events src) ; This is not required as port-closed-p should already call it.
+    (data-flow:process-all-events src) ; This is not required as connectedp should already call it.
                                         ; I have put this here for my sake.
-    (is-true (data-flow:port-closed-p src-port))
     (is-false (data-flow:connectedp src-port))
     (is-true (typep src-port 'data-flow.component.standard-port:standard-output-port))
 
@@ -391,9 +382,9 @@
     (data-flow:close-port sink-port1)
     (is-true (data-flow:requires-execution-p src))
 
-    (is-true (data-flow:port-closed-p src-port1))
+    (is-false (data-flow:connectedp src-port1))
     (is-false (data-flow:requires-execution-p src))
-    (is-true (data-flow:port-closed-p src-port2))
+    (is-false (data-flow:connectedp src-port2))
 
-    (is-true (data-flow:port-closed-p sink-port1))
-    (is-true (data-flow:port-closed-p sink-port2))))
+    (is-false (data-flow:connectedp sink-port1))
+    (is-false (data-flow:connectedp sink-port2))))
