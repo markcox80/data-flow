@@ -86,47 +86,6 @@
     (is-true (null (compute-applicable-methods #'data-flow:connect-ports
                                                (list c1 p1 c1 p2))))))
 
-(test disconnect-port
-  (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
-         (src (make-instance 'test-component :scheduler scheduler))
-         (src-port (data-flow:make-output-port))
-         (sink (make-instance 'test-component :scheduler scheduler))
-         (sink-port (data-flow:make-input-port)))
-    (data-flow:connect-ports src src-port sink sink-port)
-
-    (is-false (data-flow:port-closed-p src-port))
-    (is-false (data-flow:port-closed-p sink-port))
-    (data-flow:disconnect-port src-port)
-
-    (is-true (data-flow:port-closed-p src-port))
-    (is-false (data-flow:connectedp src-port))
-    (is-true (null (data-flow:connection src-port)))
-
-    ;; The source port should have changed class.
-    (is-true (typep src-port 'data-flow.component.disconnected-port:disconnected-port))
-
-    ;; The sink port is still a standard port.
-    (is-true (typep sink-port 'data-flow.component.standard-port:standard-port))
-
-    ;; Check that the sink component requires execution.
-    (is-true (data-flow:requires-execution-p sink))
-
-    ;; Execute the sink component
-    (let ((executed? nil))
-      (setf (test-component-function sink) (lambda ()
-                                             (setf executed? t)
-                                             (is-true (data-flow:port-closed-p sink-port))
-                                             (is-false (data-flow:connectedp sink-port))
-                                             (is-true (null (data-flow:connection sink-port)))
-                                             (is-true (typep sink-port 'data-flow.component.standard-port:standard-port))))
-      (data-flow:execute scheduler)
-      (is-true executed?)
-      (is-false (data-flow:requires-execution-p sink))
-      (is-true (typep sink-port 'data-flow.component.disconnected-port:disconnected-port)))
-
-    ;; Ensure the src component doesn't need executing.
-    (is-false (data-flow:requires-execution-p src))))
-
 (test methods-call-process-all-events
   (labels ((perform-test-helper (test-name port-type function)
              (check-type port-type (member :input :output))
@@ -173,9 +132,6 @@
 
       (do-test (connectedp port :both)
         (is-true (data-flow:connectedp port)))
-
-      (do-test (disconnect-port port :both)
-        (data-flow:disconnect-port port))
 
       (do-test (read-value port :input)
         (is-true (null (data-flow:read-value port :errorp nil))))
@@ -238,10 +194,10 @@
         (is-true (data-flow:port-closed-p port)))
 
       (do-test (connection port :both)
-        (is-true (typep (data-flow:connection port) 'data-flow:connection)))
+        (is-true (null (data-flow:connection port))))
 
       (do-test (connectedp port :both)
-        (is-true (data-flow:connectedp port)))
+        (is-false (data-flow:connectedp port)))
 
       (do-test (read-value port :input)
         (is-true (null (data-flow:read-value port :errorp nil))))
@@ -263,23 +219,39 @@
          (sink-port (data-flow:make-input-port)))
     (data-flow:connect-ports src src-port sink sink-port)
 
+    (is-true (typep sink-port 'data-flow.component.standard-port:standard-input-port))
+    (is-false (data-flow:port-closed-p sink-port))
+    (is-true (data-flow:connectedp sink-port))
+
     ;; Close the sink port
     (data-flow:close-port sink-port)
     (is-true (data-flow:port-closed-p sink-port))
-    (is-true (data-flow:connectedp sink-port))
+    (is-false (data-flow:connectedp sink-port))
     (is-true (data-flow:requires-execution-p src))
     (is-false (data-flow:requires-execution-p sink))
+    (is-true (typep sink-port 'data-flow.component.standard-port:standard-input-port))
+    (is-true (typep src-port 'data-flow.component.standard-port:standard-output-port))
 
     ;; Check that the event is propagated to the src component.
     (data-flow:process-all-events src) ; This is not required as port-closed-p should already call it.
                                         ; I have put this here for my sake.
     (is-true (data-flow:port-closed-p src-port))
-    (is-true (data-flow:connectedp src-port))
+    (is-false (data-flow:connectedp src-port))
+    (is-true (typep src-port 'data-flow.component.standard-port:standard-output-port))
 
     ;; Close the src-port and ensure no event is propagated to the
     ;; sink.
     (data-flow:close-port src-port)
-    (is-false (data-flow:requires-execution-p sink))))
+    (is-false (data-flow:requires-execution-p sink))
+
+    ;; Run the components to ensure the ports change to a disconnected port.
+    (data-flow:run sink)
+    (is-true (typep sink-port 'data-flow.component.disconnected-port:disconnected-input-port))
+    (is-true (typep src-port 'data-flow.component.standard-port:standard-output-port))
+
+    (data-flow:run src)
+    (is-true (typep sink-port 'data-flow.component.disconnected-port:disconnected-input-port))
+    (is-true (typep src-port 'data-flow.component.disconnected-port:disconnected-output-port))))
 
 (test close-port-event
   (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
@@ -296,18 +268,6 @@
     ;; port before the body of CLOSE-PORT can act on the port.
     (is-false (data-flow:requires-execution-p src))))
 
-(test disconnect-port-event
-  (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
-         (src (make-instance 'test-component :scheduler scheduler))
-         (src-port (data-flow:make-output-port))
-         (sink (make-instance 'test-component :scheduler scheduler))
-         (sink-port (data-flow:make-input-port)))
-    (data-flow:connect-ports src src-port sink sink-port)
-    (data-flow:enqueue-event sink (make-instance 'data-flow.component.standard-port:port-disconnected-event
-                                                 :port sink-port))
-    (data-flow:run sink)
-    (is-true (typep sink-port 'data-flow.component.disconnected-port:disconnected-port))))
-
 (test disconnect-closed-port
   (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
          (src (make-instance 'test-component :scheduler scheduler))
@@ -316,7 +276,6 @@
          (sink-port (data-flow:make-input-port)))
     (data-flow:connect-ports src src-port sink sink-port)
     (data-flow:close-port sink-port)
-    (data-flow:disconnect-port sink-port)
     (data-flow:run src)
     (data-flow:run sink)
     (is-true (typep src-port 'data-flow.component.disconnected-port:disconnected-port))
@@ -330,7 +289,8 @@
          (sink (make-instance 'test-component :scheduler scheduler))
          (sink-port (data-flow:make-input-port)))
     (data-flow:connect-ports src src-port sink sink-port)
-    (data-flow:disconnect-port src-port)
+    (data-flow:close-port src-port)
+    (data-flow:run src)
     (is-true (typep src-port 'data-flow.component.disconnected-port:disconnected-output-port))
     (is (= 5 (data-flow:total-space src-port)))))
 

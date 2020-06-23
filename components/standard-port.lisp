@@ -15,9 +15,6 @@
 
 (defclass port-closed-event (port-event)
   ())
-
-(defclass port-disconnected-event (port-event)
-  ())
 
 ;;;; Standard port
 
@@ -66,19 +63,12 @@
 (defmethod data-flow:close-port ((port standard-port))
   (data-flow:process-all-events port)
   (unless (%closedp port)
-    (setf (%closedp port) t)
-    (data-flow:enqueue-event (%remote-component port)
-                             (make-instance 'port-closed-event :port (%remote-port port)))
-    t))
-
-(defmethod data-flow:disconnect-port ((port standard-port))
-  (data-flow:process-all-events port)
-  (when (%connection port)
     (setf (%closedp port) t
           (%connection port) nil)
     (data-flow:enqueue-event (%remote-component port)
-                             (make-instance 'port-disconnected-event :port (%remote-port port))))
-  (values))
+                             (make-instance 'port-closed-event :port (%remote-port port)))
+    (data-flow.queue:enqueue (%disconnect-queue (%component port)) port)
+    t))
 
 ;;;; Standard Input Port
 
@@ -118,10 +108,6 @@
 (defmethod data-flow:close-port ((port standard-input-port))
   (when (call-next-method)
     (data-flow.queue:clear (%queue port))))
-
-(defmethod data-flow:disconnect-port ((port standard-input-port))
-  (call-next-method)
-  (change-class port 'data-flow.component.disconnected-port:disconnected-input-port))
 
 ;;;; Standard Output Port
 
@@ -163,11 +149,6 @@
 (defmethod data-flow:close-port ((port standard-output-port))
   (when (call-next-method)
     (setf (%available-space port) 0)))
-
-(defmethod data-flow:disconnect-port ((port standard-output-port))
-  (call-next-method)
-  (change-class port 'data-flow.component.disconnected-port:disconnected-output-port
-                :total-space (data-flow:total-space port)))
 
 ;;;; Component mixin
 
@@ -227,38 +208,15 @@
   (values))
 
 (defmethod data-flow:process-event ((component standard-port-component-mixin) (event port-closed-event))
-  (declare (ignore component))
   (let ((port (port event)))
     (check-type port standard-port)
     (unless (%closedp port)
       (setf (%closedp port) t
+            (%connection port) nil
             (%unseen-events-p port) t)
+      (data-flow.queue:enqueue (%disconnect-queue component) port)
       (when (typep port 'standard-output-port)
         (setf (%available-space port) 0))))
-  (values))
-
-(defmethod data-flow:process-event ((component standard-port-component-mixin) (event port-disconnected-event))
-  ;; It would be tempting to invoke CHANGE-CLASS here but you need to
-  ;; consider what happens after PROCESS-ALL-EVENTS is called. Have a
-  ;; look at READ-VALUE and you can see what needs to change in order
-  ;; to handle a port changing class. That same logic needs to appear
-  ;; in all operations which call PROCESS-ALL-EVENTS.
-  ;;
-  ;; Instead, we close the port and then make a note to disconnect the
-  ;; port after the component has run.
-  ;;
-  ;; I am not sure a design involving CHANGE-CLASS is a good idea. It
-  ;; does save checking that all of the slots have been initialised
-  ;; correctly.
-  (let ((port (port event)))
-    (check-type port standard-port)
-    (when (%connection port)
-      (setf (%closedp port) t
-            (%unseen-events-p port) t
-            (%connection port) nil)
-      (when (typep port 'standard-output-port)
-        (setf (%available-space port) 0))
-      (data-flow.queue:enqueue (%disconnect-queue component) port)))
   (values))
 
 (defmethod data-flow:requires-execution-p or ((component standard-port-component-mixin))
