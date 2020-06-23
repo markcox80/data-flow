@@ -46,9 +46,6 @@
   (:export "PORT"
            "PORTP"
            "CLOSE-PORT"
-           "PORT-CLOSED-P"
-
-           "DISCONNECT-PORT"
 
            "PORT-ERROR"
            "PORT-ERROR-PORT"
