@@ -216,7 +216,7 @@
     (is-true (typep sink-port 'data-flow.component.standard-port:standard-input-port))
     (is-true (data-flow:connectedp sink-port))
 
-    ;; Close the sink port
+    ;; Disconnect the sink port
     (data-flow:disconnect-port sink-port)
     (is-false (data-flow:connectedp sink-port))
     (is-true (data-flow:requires-execution-p src))
@@ -230,8 +230,8 @@
     (is-false (data-flow:connectedp src-port))
     (is-true (typep src-port 'data-flow.component.standard-port:standard-output-port))
 
-    ;; Close the src-port and ensure no event is propagated to the
-    ;; sink.
+    ;; Disconnect the src-port and ensure no event is propagated to
+    ;; the sink.
     (data-flow:disconnect-port src-port)
     (is-false (data-flow:requires-execution-p sink))
 
@@ -244,7 +244,7 @@
     (is-true (typep sink-port 'data-flow.component.disconnected-port:disconnected-input-port))
     (is-true (typep src-port 'data-flow.component.disconnected-port:disconnected-output-port))))
 
-(test close-port-event
+(test port-disconnected-event
   (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
          (src (make-instance 'test-component :scheduler scheduler))
          (src-port (data-flow:make-output-port))
@@ -354,7 +354,7 @@
     (is (= 2 (data-flow:available-space src-port)))
     (is-true (data-flow:space-available-p src-port))))
 
-(test multiple-close-port-events
+(test multiple-disconnect-port-events
   (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
          (src (make-instance 'test-component :scheduler scheduler))
          (src-port1 (data-flow:make-output-port))
