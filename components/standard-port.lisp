@@ -133,7 +133,8 @@
            (data-flow:enqueue-event %remote-component
                                     (make-instance 'value-written-event
                                                    :port %remote-port
-                                                   :value value)))
+                                                   :value value))
+           value)
 
           (errorp
            (error 'data-flow:no-space-available-error :port port))
