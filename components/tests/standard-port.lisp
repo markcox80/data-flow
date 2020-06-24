@@ -388,3 +388,21 @@
 
     (is-false (data-flow:connectedp sink-port1))
     (is-false (data-flow:connectedp sink-port2))))
+
+(test read-closed-port
+  (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (src (make-instance 'test-component :scheduler scheduler))
+         (src-port (data-flow:make-output-port :total-space 5))
+         (sink (make-instance 'test-component :scheduler scheduler))
+         (sink-port (data-flow:make-input-port)))
+    (data-flow:connect-ports src src-port sink sink-port)
+    (data-flow:write-value 1 src-port)
+    (data-flow:write-value 2 src-port)
+    (data-flow:close-port src-port)
+
+    (is-false (data-flow:connectedp src-port))
+    (is-true (data-flow:connectedp sink-port))
+
+    (is (= 1 (data-flow:read-value sink-port :errorp nil)))
+    (is (= 2 (data-flow:read-value sink-port :errorp nil)))
+    (is-false (data-flow:connectedp sink-port))))
