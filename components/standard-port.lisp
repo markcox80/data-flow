@@ -73,7 +73,7 @@
            :initform (data-flow.fifo:make-fifo)
            :reader %queue)))
 
-(defmethod data-flow:read-value ((port standard-input-port) &key (errorp t) no-data-value closed-value)
+(defmethod data-flow:read-value ((port standard-input-port) &key (errorp t) no-data-value disconnected-value)
   (data-flow:process-all-events port)
 
   (with-accessors ((%remote-component %remote-component)
@@ -88,8 +88,8 @@
 
             ((%closedp port)
              (if errorp
-                 (error 'data-flow:port-closed-error :port port)
-                 closed-value))
+                 (error 'data-flow:port-disconnected-error :port port)
+                 disconnected-value))
 
             (errorp
              (error 'data-flow:no-data-available-error :port port))
@@ -116,7 +116,7 @@
    (%available-space :initarg :available-space
                      :accessor %available-space)))
 
-(defmethod data-flow:write-value (value (port standard-output-port) &key (errorp t) no-space-value closed-value &allow-other-keys)
+(defmethod data-flow:write-value (value (port standard-output-port) &key (errorp t) no-space-value disconnected-value &allow-other-keys)
   (data-flow:process-all-events port)
 
   (with-accessors ((%available-space %available-space)
@@ -125,8 +125,8 @@
       port
     (cond ((%closedp port)
            (if errorp
-               (error 'data-flow:port-closed-error :port port)
-               closed-value))
+               (error 'data-flow:port-disconnected-error :port port)
+               disconnected-value))
 
           ((plusp %available-space)
            (decf %available-space)
