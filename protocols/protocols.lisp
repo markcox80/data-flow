@@ -198,7 +198,7 @@
 
 (defgeneric portp (port))
 
-(defgeneric close-port (port))
+(defgeneric disconnect-port (port))
 (defgeneric connection (port))
 (defgeneric connectedp (port))
 

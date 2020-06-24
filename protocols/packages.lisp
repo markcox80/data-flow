@@ -45,7 +45,7 @@
   ;; Port protocol
   (:export "PORT"
            "PORTP"
-           "CLOSE-PORT"
+           "DISCONNECT-PORT"
 
            "PORT-ERROR"
            "PORT-ERROR-PORT"
