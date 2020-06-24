@@ -13,7 +13,7 @@
 (defclass value-read-event (port-event)
   ())
 
-(defclass port-closed-event (port-event)
+(defclass port-disconnected-event (port-event)
   ())
 
 ;;;; Standard port
@@ -62,7 +62,7 @@
     (setf (%closedp port) t
           (%connection port) nil)
     (data-flow:enqueue-event (%remote-component port)
-                             (make-instance 'port-closed-event :port (%remote-port port)))
+                             (make-instance 'port-disconnected-event :port (%remote-port port)))
     (data-flow.queue:enqueue (%disconnect-queue (%component port)) port)
     t))
 
@@ -206,7 +206,7 @@
             (%unseen-events-p port) t)))
   (values))
 
-(defmethod data-flow:process-event ((component standard-port-component-mixin) (event port-closed-event))
+(defmethod data-flow:process-event ((component standard-port-component-mixin) (event port-disconnected-event))
   (let ((port (port event)))
     (check-type port standard-port)
     (unless (%closedp port)

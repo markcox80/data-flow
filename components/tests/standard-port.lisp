@@ -251,15 +251,16 @@
          (sink (make-instance 'test-component :scheduler scheduler))
          (sink-port (data-flow:make-input-port)))
     (data-flow:connect-ports src src-port sink sink-port)
-    (data-flow:enqueue-event sink (make-instance 'data-flow.component.standard-port:port-closed-event
+    (data-flow:enqueue-event sink (make-instance 'data-flow.component.standard-port:port-disconnected-event
                                                  :port sink-port))
     (data-flow:disconnect-port sink-port)
-    ;; No event should be sent to src because CLOSE-PORT must process
-    ;; any events first. The sent port-closed-event should close the
-    ;; port before the body of CLOSE-PORT can act on the port.
+    ;; No event should be sent to src because DISCONNECT-PORT must
+    ;; process any events first. The sent port-disconnected-event
+    ;; should disconnect the port before the body of DISCONNECT-PORT
+    ;; can act on the port.
     (is-false (data-flow:requires-execution-p src))))
 
-(test disconnect-closed-port
+(test disconnect-port-changes-class
   (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
          (src (make-instance 'test-component :scheduler scheduler))
          (src-port (data-flow:make-output-port))
