@@ -407,3 +407,31 @@
     (is (= 1 (data-flow:read-value sink-port :errorp nil)))
     (is (= 2 (data-flow:read-value sink-port :errorp nil)))
     (is-false (data-flow:connectedp sink-port))))
+
+(test read-value
+  (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (src (make-instance 'test-component :scheduler scheduler))
+         (src-port (data-flow:make-output-port))
+         (sink (make-instance 'test-component :scheduler scheduler))
+         (sink-port (data-flow:make-input-port)))
+    (data-flow:connect-ports src src-port sink sink-port)
+    (data-flow:write-value 1 src-port)
+    (is (= 1 (data-flow:read-value sink-port)))
+
+    (signals data-flow:no-data-available-error
+      (data-flow:read-value sink-port))
+
+    (signals data-flow:no-data-available-error
+      (data-flow:read-value sink-port :no-data-value nil))
+
+    (is-true (= -1 (data-flow:read-value sink-port :no-data-value -1 :errorp nil)))
+
+    (data-flow:disconnect-port src-port)
+
+    (signals data-flow:port-disconnected-error
+      (data-flow:read-value sink-port))
+
+    (signals data-flow:port-disconnected-error
+      (data-flow:read-value sink-port :disconnected-value nil))
+
+    (is-true (= -2 (data-flow:read-value sink-port :disconnected-value -2 :errorp nil)))))
