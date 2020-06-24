@@ -49,7 +49,7 @@
 
            "PORT-ERROR"
            "PORT-ERROR-PORT"
-           "PORT-CLOSED-ERROR")
+           "PORT-DISCONNECTED-ERROR")
 
   ;; Input Port protocol
   (:export "INPUT-PORT"
