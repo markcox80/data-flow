@@ -97,6 +97,13 @@
             (t
              no-data-value)))))
 
+(defmethod data-flow:connection ((port standard-input-port))
+  (data-flow:process-all-events port)
+  (when (and (%closedp port)
+             (data-flow.queue:emptyp (%queue port)))
+    (setf (%connection port) nil))
+  (%connection port))
+
 (defmethod data-flow:close-port ((port standard-input-port))
   (when (call-next-method)
     (data-flow.queue:clear (%queue port))))
@@ -204,11 +211,15 @@
     (check-type port standard-port)
     (unless (%closedp port)
       (setf (%closedp port) t
-            (%connection port) nil
             (%unseen-events-p port) t)
       (data-flow.queue:enqueue (%disconnect-queue component) port)
-      (when (typep port 'standard-output-port)
-        (setf (%available-space port) 0))))
+      (etypecase port
+        (standard-output-port
+         (setf (%available-space port) 0
+               (%connection port) nil))
+        (standard-input-port
+         (when (data-flow.queue:emptyp (%queue port))
+           (setf (%connection port) nil))))))
   (values))
 
 (defmethod data-flow:requires-execution-p or ((component standard-port-component-mixin))
