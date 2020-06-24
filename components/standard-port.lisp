@@ -29,9 +29,9 @@
                       :reader %remote-component)
    (%connection :initarg :connection
                 :accessor %connection)
-   (%closedp :initarg :closedp
-             :initform nil
-             :accessor %closedp)))
+   (%disconnectedp :initarg :disconnectedp
+                   :initform nil
+                   :accessor %disconnectedp)))
 
 (defun %unseen-events-p (port)
   (check-type port standard-port)
@@ -58,8 +58,8 @@
 
 (defmethod data-flow:disconnect-port ((port standard-port))
   (data-flow:process-all-events port)
-  (unless (%closedp port)
-    (setf (%closedp port) t
+  (unless (%disconnectedp port)
+    (setf (%disconnectedp port) t
           (%connection port) nil)
     (data-flow:enqueue-event (%remote-component port)
                              (make-instance 'port-disconnected-event :port (%remote-port port)))
@@ -86,7 +86,7 @@
                                       (make-instance 'value-read-event :port %remote-port))
              item)
 
-            ((%closedp port)
+            ((%disconnectedp port)
              (if errorp
                  (error 'data-flow:port-disconnected-error :port port)
                  disconnected-value))
@@ -99,7 +99,7 @@
 
 (defmethod data-flow:connection ((port standard-input-port))
   (data-flow:process-all-events port)
-  (when (and (%closedp port)
+  (when (and (%disconnectedp port)
              (data-flow.queue:emptyp (%queue port)))
     (setf (%connection port) nil))
   (%connection port))
@@ -123,7 +123,7 @@
                    (%remote-component %remote-component)
                    (%remote-port %remote-port))
       port
-    (cond ((%closedp port)
+    (cond ((%disconnectedp port)
            (if errorp
                (error 'data-flow:port-disconnected-error :port port)
                disconnected-value))
@@ -188,7 +188,7 @@
 (defmethod data-flow:process-event ((component standard-port-component-mixin) (event value-written-event))
   (let ((port (port event)))
     (check-type port standard-input-port)
-    (unless (%closedp port)
+    (unless (%disconnectedp port)
       (data-flow.queue:enqueue (%queue port) (value event))
       (setf (%unseen-events-p port) t)))
   (values))
@@ -196,7 +196,7 @@
 (defmethod data-flow:process-event ((component standard-port-component-mixin) (event value-read-event))
   (let ((port (port event)))
     (check-type port standard-output-port)
-    (unless (%closedp port)
+    (unless (%disconnectedp port)
       (when (>= (%available-space port)
                 (data-flow:total-space port))
         (warn "The component ~A received the event ~A for a value that was never sent."
@@ -209,8 +209,8 @@
 (defmethod data-flow:process-event ((component standard-port-component-mixin) (event port-disconnected-event))
   (let ((port (port event)))
     (check-type port standard-port)
-    (unless (%closedp port)
-      (setf (%closedp port) t
+    (unless (%disconnectedp port)
+      (setf (%disconnectedp port) t
             (%unseen-events-p port) t)
       (data-flow.queue:enqueue (%disconnect-queue component) port)
       (etypecase port
@@ -271,7 +271,7 @@
                       :remote-port output-port
                       :remote-component output-component
                       :connection connection
-                      :closedp nil)))
+                      :disconnectedp nil)))
 
     (data-flow.sequential-object:linearize output-component
       (let* ((port-index (%next-port-index output-component)))
@@ -282,7 +282,7 @@
                       :remote-port input-port
                       :remote-component input-component
                       :connection connection
-                      :closedp nil
+                      :disconnectedp nil
                       :total-space (data-flow:total-space output-port)
                       :available-space (data-flow:total-space output-port))))
 
