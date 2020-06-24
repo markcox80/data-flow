@@ -435,3 +435,46 @@
       (data-flow:read-value sink-port :disconnected-value nil))
 
     (is-true (= -2 (data-flow:read-value sink-port :disconnected-value -2 :errorp nil)))))
+
+(test write-value
+  (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (src (make-instance 'test-component :scheduler scheduler))
+         (src-port (data-flow:make-output-port :total-space 2))
+         (sink (make-instance 'test-component :scheduler scheduler))
+         (sink-port (data-flow:make-input-port)))
+    (data-flow:connect-ports src src-port sink sink-port)
+
+    (flet ((test-no-space-available (port)
+             (is-false (data-flow:space-available-p port))
+             (signals data-flow:no-space-available-error
+               (data-flow:write-value 100 port))
+             (signals data-flow:no-space-available-error
+               (data-flow:write-value 100 port :no-space-value -1))
+             (is (= -1 (data-flow:write-value 100 port :no-space-value -1 :errorp nil)))))
+
+      (is (= 2 (data-flow:available-space src-port)))
+      (is-true (data-flow:space-available-p src-port))
+      (is (eql 1 (data-flow:write-value 1 src-port)))
+
+      (is (= 1 (data-flow:available-space src-port)))
+      (is-true (data-flow:space-available-p src-port))
+      (is (eql 2 (data-flow:write-value 2 src-port)))
+
+      (test-no-space-available src-port)
+
+      (is (= 1 (data-flow:read-value sink-port)))
+      (is (eql 3 (data-flow:write-value 3 src-port)))
+
+      (test-no-space-available src-port)
+
+      (data-flow:disconnect-port src-port)
+
+      (is-false (data-flow:space-available-p src-port))
+      (is-true (zerop (data-flow:available-space src-port)))
+      (signals data-flow:port-disconnected-error
+        (data-flow:write-value 4 src-port))
+
+      (signals data-flow:port-disconnected-error
+        (data-flow:write-value 4 src-port :disconnected-value nil))
+
+      (is (= -1 (data-flow:write-value 4 src-port :disconnected-value -1 :errorp nil))))))
