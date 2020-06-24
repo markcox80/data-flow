@@ -56,7 +56,7 @@
   (data-flow:process-all-events port)
   (%connection port))
 
-(defmethod data-flow:close-port ((port standard-port))
+(defmethod data-flow:disconnect-port ((port standard-port))
   (data-flow:process-all-events port)
   (unless (%closedp port)
     (setf (%closedp port) t
@@ -104,7 +104,7 @@
     (setf (%connection port) nil))
   (%connection port))
 
-(defmethod data-flow:close-port ((port standard-input-port))
+(defmethod data-flow:disconnect-port ((port standard-input-port))
   (when (call-next-method)
     (data-flow.queue:clear (%queue port))))
 
@@ -145,7 +145,7 @@
   (data-flow:process-all-events port)
   (%available-space port))
 
-(defmethod data-flow:close-port ((port standard-output-port))
+(defmethod data-flow:disconnect-port ((port standard-output-port))
   (when (call-next-method)
     (setf (%available-space port) 0)))
 
