@@ -22,5 +22,4 @@
            "PORT-EVENT"
            "VALUE-WRITTEN-EVENT"
            "VALUE-READ-EVENT"
-           "PORT-CLOSED-EVENT"
            "PORT-DISCONNECTED-EVENT"))

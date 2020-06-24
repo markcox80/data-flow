@@ -198,7 +198,7 @@
 
 (defgeneric portp (port))
 
-(defgeneric close-port (port))
+(defgeneric disconnect-port (port))
 (defgeneric connection (port))
 (defgeneric connectedp (port))
 
@@ -209,10 +209,10 @@
   ((%port :initarg :port
           :reader port-error-port)))
 
-(define-condition port-closed-error (port-error)
+(define-condition port-disconnected-error (port-error)
   ()
   (:report (lambda (condition stream)
-             (format stream "Unable to perform operation as the port ~A is closed."
+             (format stream "Unable to perform operation as the port ~A is disconnected."
                      (port-error-port condition)))))
 
 (defmethod portp (port)
@@ -228,7 +228,7 @@
 
 ;;;; Input port protocol
 
-(defgeneric read-value (port &key errorp no-data-value closed-value &allow-other-keys))
+(defgeneric read-value (port &key errorp no-data-value disconnected-value &allow-other-keys))
 (defgeneric input-port-p (port))
 
 ;; Defined elsewhere due to implementation.
@@ -253,7 +253,7 @@
 
 ;;;; Output port protocol
 
-(defgeneric write-value (value port &key errorp no-space-value closed-value &allow-other-keys))
+(defgeneric write-value (value port &key errorp no-space-value disconnected-value &allow-other-keys))
 
 (defvar *default-total-space* 10)
 (defgeneric space-available-p (output-port))

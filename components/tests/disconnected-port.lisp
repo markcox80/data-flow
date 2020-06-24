@@ -15,7 +15,7 @@
     (is-true (zerop (data-flow:available-space port)))
     (is (= data-flow:*default-total-space* (data-flow:total-space port)))))
 
-(test disconnected-port/closed
+(test disconnected-port/disconnected
   (dolist (port (list (make-instance 'data-flow.component.disconnected-port:disconnected-input-port)
                       (make-instance 'data-flow.component.disconnected-port:disconnected-output-port)))
     (is-true (data-flow:portp port))
@@ -25,12 +25,12 @@
 
 (test disconnected-port/read-value
   (let* ((port (make-instance 'data-flow.component.disconnected-port:disconnected-input-port)))
-    (signals data-flow:port-closed-error (data-flow:read-value port))
-    (signals data-flow:port-closed-error (data-flow:read-value port :closed-value -1))
-    (is (= -1 (data-flow:read-value port :closed-value -1 :errorp nil)))))
+    (signals data-flow:port-disconnected-error (data-flow:read-value port))
+    (signals data-flow:port-disconnected-error (data-flow:read-value port :disconnected-value -1))
+    (is (= -1 (data-flow:read-value port :disconnected-value -1 :errorp nil)))))
 
 (test disconnected-port/write-value
   (let* ((port (make-instance 'data-flow.component.disconnected-port:disconnected-output-port)))
-    (signals data-flow:port-closed-error (data-flow:write-value 1 port))
-    (signals data-flow:port-closed-error (data-flow:write-value 1 port :closed-value -1))
-    (is (= -1 (data-flow:write-value 1 port :closed-value -1 :errorp nil)))))
+    (signals data-flow:port-disconnected-error (data-flow:write-value 1 port))
+    (signals data-flow:port-disconnected-error (data-flow:write-value 1 port :disconnected-value -1))
+    (is (= -1 (data-flow:write-value 1 port :disconnected-value -1 :errorp nil)))))
