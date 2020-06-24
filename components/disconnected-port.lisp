@@ -9,7 +9,7 @@
   (declare (ignore port))
   nil)
 
-(defmethod data-flow:close-port ((port disconnected-port))
+(defmethod data-flow:disconnect-port ((port disconnected-port))
   (declare (ignore port))
   (values))
 
