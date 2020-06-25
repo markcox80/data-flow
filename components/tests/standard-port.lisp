@@ -478,3 +478,29 @@
         (data-flow:write-value 4 src-port :disconnected-value nil))
 
       (is (= -1 (data-flow:write-value 4 src-port :disconnected-value -1 :errorp nil))))))
+
+(test read-value/values-after-disconnection
+  (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (src (make-instance 'test-component :scheduler scheduler))
+         (src-port (data-flow:make-output-port :total-space 2))
+         (sink (make-instance 'test-component :scheduler scheduler))
+         (sink-port (data-flow:make-input-port)))
+    (data-flow:connect-ports src src-port sink sink-port)
+    (data-flow:write-value 1 src-port)
+    (data-flow:write-value 2 src-port)
+    (data-flow:disconnect-port src-port)
+
+    (is-false (data-flow:requires-execution-p src))
+
+    ;; The sink port has data so this should be true.
+    (is-true (data-flow:connectedp sink-port))
+
+    (is (eql 1 (data-flow:read-value sink-port)))
+    ;; No events should be sent to src because the port is disconnected.
+    (is-false (data-flow:requires-execution-p src))
+
+    (is (eql 2 (data-flow:read-value sink-port)))
+    (is-false (data-flow:connectedp sink-port))
+    (is-true (null (data-flow:read-value sink-port :errorp nil :disconnected-value nil)))
+
+    (is-false (data-flow:requires-execution-p src))))
