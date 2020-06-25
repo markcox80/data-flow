@@ -82,8 +82,9 @@
       port
     (multiple-value-bind (item item?) (data-flow.queue:dequeue %queue)
       (cond (item?
-             (data-flow:enqueue-event %remote-component
-                                      (make-instance 'value-read-event :port %remote-port))
+             (unless (%disconnectedp port)
+               (data-flow:enqueue-event %remote-component
+                                        (make-instance 'value-read-event :port %remote-port)))
              item)
 
             ((%disconnectedp port)
