@@ -504,3 +504,34 @@
     (is-true (null (data-flow:read-value sink-port :errorp nil :disconnected-value nil)))
 
     (is-false (data-flow:requires-execution-p src))))
+
+(test read-and-write-events
+  (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (src (make-instance 'test-component :scheduler scheduler))
+         (src-port (data-flow:make-output-port :total-space 2))
+         (sink (make-instance 'test-component :scheduler scheduler))
+         (sink-port (data-flow:make-input-port)))
+    (data-flow:connect-ports src src-port sink sink-port)
+
+    (is-false (data-flow:requires-execution-p src))
+    (is-false (data-flow:requires-execution-p sink))
+
+    (data-flow:write-value 1 src-port)
+
+    (is-false (data-flow:requires-execution-p src))
+    (is-true (data-flow:requires-execution-p sink))
+
+    (data-flow:write-value 2 src-port)
+
+    (is-false (data-flow:requires-execution-p src))
+    (is-true (data-flow:requires-execution-p sink))
+
+    (is (eql 1 (data-flow:read-value sink-port)))
+
+    (is-true (data-flow:requires-execution-p src))
+    (is-false (data-flow:requires-execution-p sink))
+
+    (data-flow:write-value 3 src-port)
+
+    (is-false (data-flow:requires-execution-p src))
+    (is-true (data-flow:requires-execution-p sink))))
