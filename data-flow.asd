@@ -56,6 +56,8 @@
                 :serial t
                 :components ((:file "packages")
                              (:file "basic-component")
+                             (:file "disconnected-port")
+                             (:file "standard-port")
                              (:file "standard-component")))))
 
 (defsystem "data-flow"
@@ -124,7 +126,9 @@
   :components ((:module "components/tests"
                 :serial t
                 :components ((:file "packages")
-                             (:file "component")))))
+                             (:file "component")
+                             (:file "disconnected-port")
+                             (:file "standard-port")))))
 
 (defsystem "data-flow/tests"
   :author "Mark Cox"

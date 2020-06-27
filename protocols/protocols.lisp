@@ -148,7 +148,7 @@
 ;; Return T if the component has events which have not been processed
 ;; by the component.
 ;;
-;; This is a concurrent function.
+;; This is a non-concurrent function.
 (defgeneric requires-execution-p (component)
   (:method-combination or))
 
@@ -193,3 +193,112 @@
 ;; This class is defined elsewhere due to the way it is implemented.
 ;; (defclass standard-component (basic-component)
 ;;   ())
+
+;;;; Port protocol
+
+(defgeneric portp (port))
+
+(defgeneric disconnect-port (port))
+(defgeneric connection (port))
+(defgeneric connectedp (port))
+
+(defclass port ()
+  ())
+
+(define-condition port-error ()
+  ((%port :initarg :port
+          :reader port-error-port)))
+
+(define-condition port-disconnected-error (port-error)
+  ()
+  (:report (lambda (condition stream)
+             (format stream "Unable to perform operation as the port ~A is disconnected."
+                     (port-error-port condition)))))
+
+(defmethod portp (port)
+  (declare (ignore port))
+  nil)
+
+(defmethod portp ((port port))
+  (declare (ignore port))
+  t)
+
+(defmethod connectedp ((port port))
+  (not (null (connection port))))
+
+;;;; Input port protocol
+
+(defgeneric read-value (port &key errorp no-data-value disconnected-value &allow-other-keys))
+(defgeneric input-port-p (port))
+
+;; Defined elsewhere due to implementation.
+;; (defun make-input-port ())
+
+(defclass input-port (port)
+  ())
+
+(define-condition no-data-available-error (port-error)
+  ()
+  (:report (lambda (condition stream)
+             (format stream "No data available on port ~A."
+                     (port-error-port condition)))))
+
+(defmethod input-port-p (port)
+  (declare (ignore port))
+  nil)
+
+(defmethod input-port-p ((port input-port))
+  (declare (ignore port))
+  t)
+
+;;;; Output port protocol
+
+(defgeneric write-value (value port &key errorp no-space-value disconnected-value &allow-other-keys))
+
+(defvar *default-total-space* 10)
+(defgeneric space-available-p (output-port))
+(defgeneric available-space (output-port))
+(defgeneric total-space (output-port))
+(defgeneric output-port-p (port))
+
+;; Defined elsewhere due to implementation.
+;; (defun make-output-port ())
+
+(define-condition no-space-available-error (port-error)
+  ()
+  (:report (lambda (condition stream)
+             (format stream "No space available on connection for port ~A."
+                     (port-error-port condition)))))
+
+(defclass output-port (port)
+  ())
+
+(defmethod output-port-p (port)
+  (declare (ignore port))
+  nil)
+
+(defmethod output-port-p ((port output-port))
+  (declare (ignore port))
+  t)
+
+(defmethod space-available-p ((port output-port))
+  (plusp (available-space port)))
+
+;;;; Connection protocol
+
+(define-condition already-connected-error (port-error)
+  ()
+  (:report (lambda (condition stream)
+             (format stream "The port ~A is already connected."
+                     (port-error-port condition)))))
+
+(defgeneric input-port (connection))
+(defgeneric input-component (connection))
+(defgeneric output-port (connection))
+(defgeneric output-component (connection))
+
+(defclass connection ()
+  ())
+
+;; This is a concurrent function with respect to the components.
+(defgeneric connect-ports (component1 port1 component2 port2 &key &allow-other-keys))
