@@ -56,6 +56,7 @@
                              (:file "single-thread")
                              (:file "parallel")
                              (:file "bt" :if-feature data-flow.features:threads)
+                             (:file "cas" :if-feature data-flow.features:compare-and-set)
                              (:file "sequential-object")))))
 
 (defsystem "data-flow/components"
