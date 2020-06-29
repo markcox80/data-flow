@@ -1,6 +1,8 @@
-(in-package "DATA-FLOW.SEQUENTIAL-OBJECT")
+#-data-flow.features:threads
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (error 'data-flow.features:threads-unavailable-error))
 
-(defgeneric finishedp (task))
+(in-package "DATA-FLOW.SEQUENTIAL-OBJECT")
 
 (defclass bt-task (task)
   ((%lock :initarg :lock
