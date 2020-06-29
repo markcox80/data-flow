@@ -38,7 +38,7 @@
   (multiple-value-bind (head tail) (head-and-tail fifo)
     (eq head tail)))
 
-(defmethod data-flow.queue:enqueue (item (fifo lock-free-fifo))
+(defmethod data-flow.queue:enqueue ((fifo lock-free-fifo) item)
   (with-slots (%tail) fifo
     (loop
       with new-cons = (cons item nil)

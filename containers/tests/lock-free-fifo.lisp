@@ -6,7 +6,7 @@
     (loop
       for x from start below end
       do
-         (data-flow.queue:enqueue x fifo))
+         (data-flow.queue:enqueue fifo x))
     (values)))
 
 (defun make-dequeuer (fifo start end)
@@ -35,7 +35,7 @@
                                   (setf min-value (min min-value value)
                                         max-value (max max-value value)))
                                  (t
-                                  (data-flow.queue:enqueue value fifo))))
+                                  (data-flow.queue:enqueue fifo value))))
                           (t
                            (setf good (and good (not valuep))))))))))))
 
@@ -75,13 +75,13 @@
 (test lock-free-fifo-clear
   (let* ((fifo (make-lock-free-fifo)))
     (is-true (data-flow.queue:emptyp fifo))
-    (data-flow.queue:enqueue 1 fifo)
-    (data-flow.queue:enqueue 2 fifo)
+    (data-flow.queue:enqueue fifo 1)
+    (data-flow.queue:enqueue fifo 2)
     (is-false (data-flow.queue:emptyp fifo))
     (data-flow.queue:clear fifo)
     (is-true (data-flow.queue:emptyp fifo))
     (is (equalp '(nil nil) (multiple-value-list (data-flow.queue:dequeue fifo))))
-    (data-flow.queue:enqueue 3 fifo)
+    (data-flow.queue:enqueue fifo 3)
     (is-false (data-flow.queue:emptyp fifo))
     (is (equalp '(3 t) (multiple-value-list (data-flow.queue:dequeue fifo))))
     (is-true (data-flow.queue:emptyp fifo))
