@@ -100,7 +100,8 @@
                 :serial t
                 :components ((:file "packages")
                              (:file "fifo")
-                             (:file "linked-list")))))
+                             (:file "linked-list")
+                             (:file "lock-free-fifo" :if-feature data-flow.features:compare-and-set)))))
 
 (defsystem "data-flow/schedulers/tests"
   :author "Mark Cox"
