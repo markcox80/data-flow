@@ -10,6 +10,15 @@
                 :components ((:file "packages")
                              (:file "protocols")))))
 
+(defsystem "data-flow/utils"
+  :author "Mark Cox"
+  :description "Utilities for the data-flow system."
+  :serial t
+  :components ((:module "utils"
+                :serial t
+                :components ((:file "packages")
+                             (:file "sbcl" :if-feature (:and :sbcl data-flow.features:compare-and-set))))))
+
 (defsystem "data-flow/containers"
   :author "Mark Cox"
   :description "Containers for the data-flow system."
