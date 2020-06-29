@@ -5,7 +5,9 @@
   (dolist (object (list (make-instance 'data-flow.sequential-object:sequential-object)
                         (make-instance 'data-flow.sequential-object::single-threaded-sequential-object)
                         #+data-flow.features:threads
-                        (make-instance 'data-flow.sequential-object::bt-sequential-object)))
+                        (make-instance 'data-flow.sequential-object::bt-sequential-object)
+                        #+data-flow.features:compare-and-set
+                        (make-instance 'data-flow.sequential-object::cas-sequential-object)))
     (funcall function object)))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
