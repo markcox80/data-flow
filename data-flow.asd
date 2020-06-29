@@ -23,13 +23,15 @@
   :author "Mark Cox"
   :description "Containers for the data-flow system."
   :serial t
+  :depends-on ("data-flow/utils")
   :components ((:module "containers"
                 :serial t
                 :components ((:file "packages")
                              (:file "protocols")
                              (:file "fifo")
                              (:file "linked-list")
-                             (:file "bt-mutex-queue" :if-feature data-flow.features:threads)))))
+                             (:file "bt-mutex-queue" :if-feature data-flow.features:threads)
+                             (:file "lock-free-fifo" :if-feature data-flow.features:compare-and-set)))))
 
 (defsystem "data-flow/schedulers"
   :author "Mark Cox"

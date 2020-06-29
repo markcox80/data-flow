@@ -31,6 +31,11 @@
   (:export "FIFO"
            "MAKE-FIFO"))
 
+(defpackage "DATA-FLOW.LOCK-FREE-FIFO"
+  (:use "COMMON-LISP")
+  (:export "LOCK-FREE-FIFO"
+           "MAKE-LOCK-FREE-FIFO"))
+
 (defpackage "DATA-FLOW.CONTAINERS"
   (:use "COMMON-LISP")
   (:import-from "DATA-FLOW.FIFO"
