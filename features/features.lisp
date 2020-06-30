@@ -24,3 +24,16 @@
   ()
   (:default-initargs
    :feature 'threads))
+
+;;;; Compare and set
+
+(define-condition compare-and-set-unavailable-error (feature-unavailable-error)
+  ()
+  (:default-initargs
+   :feature 'compare-and-set))
+
+#+sbcl
+(when (and (alexandria:featurep 'threads)
+           (find-package "SB-EXT")
+           (macro-function (find-symbol "COMPARE-AND-SWAP" "SB-EXT")))
+  (pushnew 'compare-and-set *features*))

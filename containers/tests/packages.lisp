@@ -31,3 +31,14 @@
 (in-package "DATA-FLOW.LINKED-LIST.TESTS")
 (5am:def-suite linked-list-tests
   :in data-flow.containers.tests:container-tests)
+
+;;;; Test package for DATA-FLOW.LOCK-FREE-FIFO
+
+(defpackage "DATA-FLOW.LOCK-FREE-FIFO.TESTS"
+  (:use "COMMON-LISP"
+        "FIVEAM"
+        "DATA-FLOW.LOCK-FREE-FIFO")
+  (:export "ALL-LOCK-FREE-FIFO-TESTS"))
+(in-package "DATA-FLOW.LOCK-FREE-FIFO.TESTS")
+(5am:def-suite all-lock-free-fifo-tests
+  :in data-flow.containers.tests:container-tests)

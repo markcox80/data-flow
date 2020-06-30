@@ -10,17 +10,28 @@
                 :components ((:file "packages")
                              (:file "protocols")))))
 
+(defsystem "data-flow/utils"
+  :author "Mark Cox"
+  :description "Utilities for the data-flow system."
+  :serial t
+  :components ((:module "utils"
+                :serial t
+                :components ((:file "packages")
+                             (:file "sbcl" :if-feature (:and :sbcl data-flow.features:compare-and-set))))))
+
 (defsystem "data-flow/containers"
   :author "Mark Cox"
   :description "Containers for the data-flow system."
   :serial t
+  :depends-on ("data-flow/utils")
   :components ((:module "containers"
                 :serial t
                 :components ((:file "packages")
                              (:file "protocols")
                              (:file "fifo")
                              (:file "linked-list")
-                             (:file "bt-mutex-queue" :if-feature data-flow.features:threads)))))
+                             (:file "bt-mutex-queue" :if-feature data-flow.features:threads)
+                             (:file "lock-free-fifo" :if-feature data-flow.features:compare-and-set)))))
 
 (defsystem "data-flow/schedulers"
   :author "Mark Cox"
@@ -45,6 +56,7 @@
                              (:file "single-thread")
                              (:file "parallel")
                              (:file "bt" :if-feature data-flow.features:threads)
+                             (:file "cas" :if-feature data-flow.features:compare-and-set)
                              (:file "sequential-object")))))
 
 (defsystem "data-flow/components"
@@ -89,7 +101,8 @@
                 :serial t
                 :components ((:file "packages")
                              (:file "fifo")
-                             (:file "linked-list")))))
+                             (:file "linked-list")
+                             (:file "lock-free-fifo" :if-feature data-flow.features:compare-and-set)))))
 
 (defsystem "data-flow/schedulers/tests"
   :author "Mark Cox"
