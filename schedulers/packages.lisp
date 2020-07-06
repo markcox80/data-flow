@@ -13,3 +13,10 @@
            "RESOURCES"
 
            "INVALID-RESOURCE-REQUIREMENT-ERROR"))
+
+(defpackage "DATA-FLOW.THREAD-POOL"
+  (:use "COMMON-LISP")
+
+  (:export "*DEFAULT-POLL-SECONDS*"
+           "THREAD-POOL"
+           "MAKE-THREAD-POOL"))
