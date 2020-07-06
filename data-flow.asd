@@ -37,12 +37,13 @@
   :author "Mark Cox"
   :description "Schedulers for the data-flow system."
   :serial t
-  :depends-on ("data-flow/protocols" "data-flow/containers")
+  :depends-on ("data-flow/protocols" "data-flow/containers" "data-flow/sequential-object")
   :components ((:module "schedulers"
                 :serial t
                 :components ((:file "packages")
                              (:file "sequential")
-                             (:file "resource" :if-feature data-flow.features:threads)))))
+                             (:file "resource" :if-feature data-flow.features:threads)
+                             (:file "thread-pool-parallel" :if-feature data-flow.features:threads)))))
 
 (defsystem "data-flow/sequential-object"
   :author "Mark Cox"
@@ -116,7 +117,8 @@
                              (:file "scheduler")
                              (:file "sequential")
                              (:file "parallel" :if-feature data-flow.features:threads)
-                             (:file "resource" :if-feature data-flow.features:threads)))))
+                             (:file "resource" :if-feature data-flow.features:threads)
+                             (:file "thread-pool")))))
 
 (defsystem "data-flow/sequential-object/tests"
   :author "Mark Cox"
