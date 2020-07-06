@@ -190,31 +190,33 @@
          (bordeaux-threads:join-thread (worker-thread worker)))))
 
 (defmethod next-runnable ((thread-pool parallel-thread-pool) last-error)
+  ;; Handle the result of the last runnable.
+  (unless (eql last-error *no-last-error*)
+    (data-flow.sequential-object:linearize thread-pool
+      (when (and (null (%error thread-pool))
+                 last-error)
+        (setf (%error thread-pool) last-error
+              (%execution-state thread-pool) :executing1))
+
+      (decf (%remaining-count thread-pool))
+      (assert (not (minusp (%remaining-count thread-pool))))))
+
+  ;; Obtain the next runnable.
   (loop
     with queue = (%executable-queue thread-pool)
     with poll-seconds of-type real = (poll-seconds thread-pool)
+    for runnable = (data-flow.sequential-object:linearize thread-pool
+                     (multiple-value-bind (runnable runnable?) (data-flow.queue:dequeue queue)
+                       (cond (runnable?
+                              runnable)
+                             ((zerop (%remaining-count thread-pool))
+                              (setf (%execution-state thread-pool) :stopped)
+                              nil))))
+    until runnable
     do
-       (let* ((runnable (data-flow.sequential-object:linearize thread-pool
-                          (unless (eql last-error *no-last-error*)
-                            (when (and (null (%error thread-pool))
-                                       last-error)
-                              (setf (%error thread-pool) last-error
-                                    (%execution-state thread-pool) :executing1))
-
-                            ;; Clear the last error so nothing else can be done with it.
-                            (setf last-error *no-last-error*)
-                            (decf (%remaining-count thread-pool))
-                            (assert (not (minusp (%remaining-count thread-pool)))))
-
-                          (multiple-value-bind (runnable runnable?) (data-flow.queue:dequeue queue)
-                            (cond (runnable?
-                                   runnable)
-                                  ((zerop (%remaining-count thread-pool))
-                                   (setf (%execution-state thread-pool) :stopped)
-                                   nil))))))
-         (if runnable
-             (return-from next-runnable runnable)
-             (sleep poll-seconds)))))
+       (sleep poll-seconds)
+    finally
+       (return runnable)))
 
 (defmethod data-flow:blocking-allowed-p ((thread-pool parallel-thread-pool))
   (data-flow.sequential-object:linearize thread-pool
