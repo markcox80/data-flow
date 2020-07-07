@@ -43,16 +43,38 @@
                                   (eql value t))
                                 results))))))
 
+(test make-thread-pool
+  #+data-flow.features:threads
+  (progn
+    (is-true (typep (data-flow.thread-pool:make-thread-pool 2) 'data-flow:parallel-scheduler))
+    (is-true (typep (data-flow.thread-pool:make-thread-pool 1) 'data-flow:sequential-scheduler)))
+
+  #-data-flow.features:threads
+  (let* ((thread-pool (data-flow.thread-pool:make-thread-pool 2)))
+    (is-true (typep thread-pool 'data-flow:sequential-scheduler))
+    (is (= 1 (data-flow:number-of-threads thread-pool))))
+
+  (let* ((thread-pool (data-flow.thread-pool:make-thread-pool 1)))
+    (is-true (typep thread-pool 'data-flow:sequential-scheduler))
+    (is (= 1 (data-flow:number-of-threads thread-pool)))))
+
 
 ;;;; Add the resource scheduler to other test suites.
 
-(defun make-parallel-scheduler (number-of-threads)
-  (make-instance 'data-flow.thread-pool::parallel-thread-pool
-                 :number-of-threads number-of-threads))
+#+data-flow.features:threads
+(progn
+  (defun make-parallel-scheduler/parallel (number-of-threads)
+    (make-instance 'data-flow.thread-pool::parallel-thread-pool
+                   :number-of-threads number-of-threads))
 
-(defun make-scheduler ()
-  (make-instance 'data-flow.thread-pool::parallel-thread-pool
-                 :number-of-threads 1))
+  (defun make-scheduler/parallel ()
+    (make-instance 'data-flow.thread-pool::parallel-thread-pool
+                   :number-of-threads 1))
 
-(pushnew 'make-scheduler data-flow.scheduler.tests:*scheduler-creation-functions*)
-(pushnew 'make-parallel-scheduler data-flow.scheduler.parallel.tests:*scheduler-creation-functions*)
+  (pushnew 'make-parallel-scheduler/parallel data-flow.scheduler.parallel.tests:*scheduler-creation-functions*)
+  (pushnew 'make-scheduler/parallel data-flow.scheduler.tests:*scheduler-creation-functions*))
+
+(defun make-scheduler/sequential ()
+  (make-instance 'data-flow.thread-pool::sequential-thread-pool))
+
+(pushnew 'make-scheduler/sequential data-flow.scheduler.tests:*scheduler-creation-functions*)

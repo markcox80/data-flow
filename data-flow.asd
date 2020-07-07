@@ -43,7 +43,9 @@
                 :components ((:file "packages")
                              (:file "sequential")
                              (:file "resource" :if-feature data-flow.features:threads)
-                             (:file "thread-pool-parallel" :if-feature data-flow.features:threads)))))
+                             (:file "thread-pool-common")
+                             (:file "thread-pool-parallel" :if-feature data-flow.features:threads)
+                             (:file "thread-pool")))))
 
 (defsystem "data-flow/sequential-object"
   :author "Mark Cox"
