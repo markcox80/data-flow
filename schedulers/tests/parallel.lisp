@@ -70,3 +70,30 @@
           until (data-flow:wait-until-finished scheduler :seconds 1))
         (is-true (data-flow:wait-until-finished scheduler :seconds 1))
         (is (eql :terminated (state)))))))
+
+(test no-jobs-and-then-execute
+  (do-parallel-schedulers (scheduler 5)
+    (data-flow:start scheduler)
+    (sleep 0.25)
+    (let* ((results (make-array 8 :initial-element '#:unset)))
+      (dotimes (i (length results))
+        (let ((state (data-flow:schedule scheduler (let* ((index i))
+                                                     (lambda ()
+                                                       (setf (aref results index) index))))))
+          (is (eql (1+ i) (data-flow:count-queued-runnables state)))
+          (is-true (zerop (data-flow:count-remaining-runnables state)))))
+      (data-flow:execute scheduler)
+      (is (equalp #(0 1 2 3 4 5 6 7) results)))))
+
+(test no-jobs-and-then-execute1
+  (do-parallel-schedulers (scheduler 4)
+    (data-flow:start1 scheduler)
+    (sleep 0.25)
+    (let* ((result nil)
+           (state (data-flow:schedule scheduler (lambda ()
+                                                  (setf result t)))))
+      (is (eql 1 (data-flow:count-queued-runnables state)))
+      (is-true (zerop (data-flow:count-remaining-runnables state)))
+
+      (data-flow:execute1 scheduler)
+      (is-true result))))
