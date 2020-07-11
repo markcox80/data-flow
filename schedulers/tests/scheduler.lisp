@@ -38,26 +38,34 @@
 
 (test schedule/remaining-runnables
   (do-schedulers (scheduler)
-    (let* ((count1 -1)
-           (count2 -1))
+    (let* ((state1 nil)
+           (state2 nil))
       (data-flow:schedule scheduler (let* ((executed? nil))
                                       (lambda ()
                                         (unless executed?
-                                          (setf executed? t)
-                                          (let* ((state (data-flow:schedule scheduler (constantly 1))))
-                                            (setf count1 (data-flow:count-remaining-runnables state)))))))
+                                          (setf executed? t
+                                                state1 (data-flow:schedule scheduler (constantly 1)))))))
       (data-flow:schedule scheduler (let* ((executed? nil))
                                       (lambda ()
                                         (unless executed?
-                                          (setf executed? t)
-                                          (let* ((state (data-flow:schedule scheduler (constantly 2))))
-                                            (setf count2 (data-flow:count-remaining-runnables state)))))))
+                                          (setf executed? t
+                                                state2 (data-flow:schedule scheduler (constantly 2)))))))
       (data-flow:execute1 scheduler)
-      (when (> count1 count2)
-        (psetf count1 count2
-               count2 count1))
-      (is (= 1 count1))
-      (is (= 2 count2)))))
+      (is (= 2 (data-flow:count-remaining-runnables state1))
+          "Incorrect number of remaining runnables for scheduler ~A. Expected 2 got ~d."
+          scheduler
+          (data-flow:count-remaining-runnables state1))
+      (is (= 1 (data-flow:count-queued-runnables state1))
+          "Incorrect number of queued runnables for scheduler ~A. Expected 1 got ~d."
+          scheduler
+          (data-flow:count-queued-runnables state1))
+      (is (= 1 (data-flow:count-remaining-runnables state2))
+          "Incorrect number of remaining runnables for scheduler ~A. Expected 1 got ~d."
+          scheduler
+          (data-flow:count-remaining-runnables state2))
+      (is (= 2 (data-flow:count-queued-runnables state2))
+          "Incorrect number of queued runnables for scheduler ~A. Expected 2 got ~d."
+          (data-flow:count-queued-runnables state2)))))
 
 (test executingp
   (do-schedulers (scheduler)

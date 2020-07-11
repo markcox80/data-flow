@@ -116,9 +116,9 @@
 
        (let* ((executable-queue (%executable-queue thread-pool)))
          (data-flow.queue:doqueue (runnable (%scheduled-queue thread-pool))
-           (incf (%remaining-count thread-pool))
            (data-flow.queue:enqueue executable-queue runnable))
-         (setf (%queued-count thread-pool) 0)
+         (setf (%remaining-count thread-pool) (%queued-count thread-pool)
+               (%queued-count thread-pool) 0)
          (unless (%workers thread-pool)
            (setf (%workers thread-pool) (loop
                                           for index from 0 below (data-flow:number-of-threads thread-pool)
