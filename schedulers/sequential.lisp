@@ -60,9 +60,9 @@
      (assert (zerop (remaining-count scheduler)))
      (let* ((executing-queue (executing-queue scheduler)))
        (data-flow.queue:doqueue (runnable (scheduled-queue scheduler))
-         (data-flow.queue:enqueue executing-queue runnable)
-         (incf (remaining-count scheduler))))
+         (data-flow.queue:enqueue executing-queue runnable)))
      (setf (error-condition scheduler) nil
+           (remaining-count scheduler) (queued-count scheduler)
            (queued-count scheduler) 0
            (state scheduler) new-state)
      t)
