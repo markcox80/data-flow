@@ -69,8 +69,7 @@
    (%poll-seconds :initarg :poll-seconds
                   :initform *default-poll-seconds*
                   :reader poll-seconds)
-   (%execution-state :initarg :execution-state
-                     :initform :stopped
+   (%execution-state :initform :stopped
                      :accessor %execution-state)
    (%scheduled-queue :initform (data-flow.fifo:make-fifo)
                      :reader %scheduled-queue)
