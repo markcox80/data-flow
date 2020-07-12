@@ -2,7 +2,8 @@
 
 ;;;; Sequential thread pool
 
-(defclass sequential-thread-pool (data-flow.sequential-scheduler:sequential-scheduler)
+(defclass sequential-thread-pool (data-flow.sequential-scheduler:sequential-scheduler
+                                  data-flow.sequential-object:sequential-object)
   ())
 
 (defmethod initialize-instance :after ((instance sequential-thread-pool) &key number-of-threads poll-seconds)
