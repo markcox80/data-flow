@@ -32,15 +32,12 @@
   (values))
 
 (defclass bt-sequential-object (parallel-sequential-object)
-  ((%queue :initarg :queue
-           :initform (data-flow.bt-mutex-queue:make-srmw-bt-mutex-queue (data-flow.fifo:make-fifo))
-           :reader task-queue)
-   (%lock :initarg :lock
-          :initform (bordeaux-threads:make-lock "DATA-FLOW.SEQUENTIAL-OBJECT::BT-SEQUENTIAL-OBJECT")
-          :reader lock)
-   (%state :initarg :state
-           :initform :stopped
-           :accessor %state)))
+  ((%btso-queue :initform (data-flow.bt-mutex-queue:make-srmw-bt-mutex-queue (data-flow.fifo:make-fifo))
+                :reader task-queue)
+   (%btso-lock :initform (bordeaux-threads:make-lock "DATA-FLOW.SEQUENTIAL-OBJECT::BT-SEQUENTIAL-OBJECT")
+               :reader lock)
+   (%btso-state :initform :stopped
+                :accessor %state)))
 
 (defmethod make-task ((bt bt-sequential-object) function)
   (make-instance 'bt-task :function function))

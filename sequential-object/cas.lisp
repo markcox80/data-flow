@@ -30,11 +30,9 @@
   (values))
 
 (defclass cas-sequential-object (parallel-sequential-object)
-  ((%queue :initarg :queue
-           :initform (data-flow.lock-free-fifo:make-lock-free-fifo)
-           :reader task-queue)
-   (%state :initarg :state
-           :initform :stopped)))
+  ((%cas-so-queue :initform (data-flow.lock-free-fifo:make-lock-free-fifo)
+                  :reader task-queue)
+   (%cas-so-state :initform :stopped)))
 
 (defmethod make-task ((cas cas-sequential-object) function)
   (make-instance 'cas-task :function function))
@@ -42,5 +40,5 @@
 (defmethod compare-and-set-state ((cas cas-sequential-object) current-state new-state)
   (check-type current-state parallel-sequential-object-state)
   (check-type new-state parallel-sequential-object-state)
-  (with-slots (%state) cas
+  (with-slots ((%state %cas-so-state)) cas
     (data-flow.utils:compare-and-set %state current-state new-state)))
