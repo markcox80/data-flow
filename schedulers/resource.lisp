@@ -84,7 +84,7 @@
   (unwind-protect (data-flow:run (delegate-runnable runnable))
     (let* ((resource-scheduler (resource-scheduler runnable))
            (required-resources (required-resources runnable)))
-      (data-flow.sequential-object:linearize (resource-scheduler runnable)
+      (data-flow.sequential-object:linearize resource-scheduler
         (setf (%remaining-resources resource-scheduler) (return-resources (%remaining-resources resource-scheduler)
                                                                           required-resources))))))
 
