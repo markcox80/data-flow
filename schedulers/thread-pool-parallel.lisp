@@ -61,8 +61,7 @@
                  :queued-count queued-count
                  :execution-state execution-state))
 
-(defclass parallel-thread-pool (thread-pool
-                                data-flow:parallel-scheduler
+(defclass parallel-thread-pool (data-flow:parallel-scheduler
                                 data-flow.sequential-object:sequential-object)
   ((%number-of-threads :initarg :number-of-threads
                        :initform 0
@@ -77,6 +76,8 @@
                      :reader %scheduled-queue)
    (%executable-queue :initform (data-flow.fifo:make-fifo)
                       :reader %executable-queue)
+   (%executable-queue-top :initform nil
+                          :accessor %executable-queue-top)
    (%remaining-count :initform 0
                      :accessor %remaining-count)
    (%queued-count :initform 0
@@ -190,6 +191,21 @@
        (dolist (worker workers)
          (bordeaux-threads:join-thread (worker-thread worker)))))
 
+(defun %pop-executable-queue (thread-pool)
+  (check-type thread-pool parallel-thread-pool)
+  (with-accessors ((top %executable-queue-top)) thread-pool
+    (multiple-value-bind (runnable runnable?) (data-flow.queue:dequeue (%executable-queue thread-pool))
+      (setf top runnable)
+      (values top runnable?))))
+
+(defun %peak-executable-queue (thread-pool)
+  (check-type thread-pool parallel-thread-pool)
+  (with-accessors ((top %executable-queue-top)) thread-pool
+    (cond (top
+           (values top t))
+          (t
+           (%pop-executable-queue thread-pool)))))
+
 (defmethod next-runnable ((thread-pool parallel-thread-pool) last-error)
   ;; Handle the result of the last runnable.
   (unless (eql last-error *no-last-error*)
@@ -204,12 +220,13 @@
 
   ;; Obtain the next runnable.
   (loop
-    with queue = (%executable-queue thread-pool)
     with poll-seconds of-type real = (poll-seconds thread-pool)
     for runnable = (data-flow.sequential-object:linearize thread-pool
-                     (multiple-value-bind (runnable runnable?) (data-flow.queue:dequeue queue)
+                     (multiple-value-bind (runnable runnable?) (%peak-executable-queue thread-pool)
                        (cond (runnable?
-                              runnable)
+                              (when (test-and-claim-resources thread-pool runnable)
+                                (%pop-executable-queue thread-pool)
+                                runnable))
                              ((zerop (%remaining-count thread-pool))
                               (setf (%execution-state thread-pool) :stopped)
                               nil))))
@@ -227,3 +244,7 @@
 (defmethod data-flow:executingp ((thread-pool parallel-thread-pool))
   (data-flow.sequential-object:linearize thread-pool
     (not (eql :stopped (%execution-state thread-pool)))))
+
+(defmethod test-and-claim-resources ((thread-pool parallel-thread-pool) runnable)
+  (declare (ignore thread-pool runnable))
+  t)
