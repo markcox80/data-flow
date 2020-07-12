@@ -61,8 +61,7 @@
                  :queued-count queued-count
                  :execution-state execution-state))
 
-(defclass parallel-thread-pool (thread-pool
-                                data-flow:parallel-scheduler
+(defclass parallel-thread-pool (data-flow:parallel-scheduler
                                 data-flow.sequential-object:sequential-object)
   ((%number-of-threads :initarg :number-of-threads
                        :initform 0
