@@ -3,7 +3,6 @@
   (:export "SEQUENTIAL-SCHEDULER"
            "MAKE-SEQUENTIAL-SCHEDULER"))
 
-#+data-flow.features:threads
 (defpackage "DATA-FLOW.RESOURCE-SCHEDULER"
   (:use "COMMON-LISP")
 
@@ -12,7 +11,12 @@
            "MAKE-RESOURCE-SCHEDULER"
            "RESOURCES"
 
-           "INVALID-RESOURCE-REQUIREMENT-ERROR"))
+           "INVALID-RESOURCE-REQUIREMENT-ERROR")
+
+  ;; Resource Protocol
+  (:export "TEST-RESOURCES-P"
+           "TEST-AND-CLAIM-RESOURCES"
+           "RETURN-RESOURCES"))
 
 (defpackage "DATA-FLOW.THREAD-POOL"
   (:use "COMMON-LISP")
@@ -20,4 +24,4 @@
   (:export "*DEFAULT-POLL-SECONDS*"
            "THREAD-POOL"
            "MAKE-THREAD-POOL"
-           "TEST-AND-CLAIM-RESOURCES"))
+           "EXECUTE-RUNNABLE-P"))

@@ -223,7 +223,7 @@
     for runnable = (data-flow.sequential-object:linearize thread-pool
                      (multiple-value-bind (runnable runnable?) (%peak-executable-queue thread-pool)
                        (cond (runnable?
-                              (when (test-and-claim-resources thread-pool runnable)
+                              (when (execute-runnable-p thread-pool runnable)
                                 (%pop-executable-queue thread-pool)
                                 runnable))
                              ((zerop (%remaining-count thread-pool))
@@ -244,6 +244,6 @@
   (data-flow.sequential-object:linearize thread-pool
     (not (eql :stopped (%execution-state thread-pool)))))
 
-(defmethod test-and-claim-resources ((thread-pool parallel-thread-pool) runnable)
+(defmethod execute-runnable-p ((thread-pool parallel-thread-pool) runnable)
   (declare (ignore thread-pool runnable))
   t)

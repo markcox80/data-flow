@@ -3,6 +3,31 @@
   (error 'data-flow.features:threads-unavailable-error))
 
 (in-package "DATA-FLOW.RESOURCE-SCHEDULER")
+
+
+;;;; Resource protocol
+
+(defgeneric test-resources-p (resource-pool resources))
+(defgeneric test-and-claim-resources (resource-pool resources))
+(defgeneric return-resources (resource-pool resources))
+
+;;;; Resource protocol implementation for reals.
+
+(defmethod test-resources-p ((remaining real) (required real))
+  (check-type remaining (real 0))
+  (check-type required (real 0))
+  (<= required remaining))
+
+(defmethod test-and-claim-resources ((remaining real) (required real))
+  (check-type remaining (real 0))
+  (check-type required (real 0))
+  (when (<= required remaining)
+    (- remaining required)))
+
+(defmethod return-resources ((remaining real) (required real))
+  (check-type remaining (real 0))
+  (check-type required (real 0))
+  (+ remaining required))
 
 
 (defgeneric required-resources (runnable-with-resources))
@@ -16,9 +41,6 @@
                         :reader required-resources)))
 
 ;;;; Resource Scheduler
-
-(deftype runnable-resources ()
-  '(real 0))
 
 (define-condition invalid-resource-requirement-error (error)
   ((%total-resources :initarg :total-resources
@@ -50,7 +72,6 @@
                                   (resources number-of-threads)
                                   (resources-function (constantly 1))
                                   (poll-seconds data-flow.thread-pool:*default-poll-seconds*))
-  (check-type resources runnable-resources)
   (check-type number-of-threads (integer 1))
   (make-instance 'resource-scheduler
                  :resources resources
@@ -61,31 +82,33 @@
 
 (defmethod data-flow:run ((runnable runnable-with-resources))
   (unwind-protect (data-flow:run (delegate-runnable runnable))
-    (data-flow.sequential-object:linearize (resource-scheduler runnable)
-      (incf (%remaining-resources (resource-scheduler runnable))
-            (required-resources runnable)))))
+    (let* ((resource-scheduler (resource-scheduler runnable))
+           (required-resources (required-resources runnable)))
+      (data-flow.sequential-object:linearize resource-scheduler
+        (setf (%remaining-resources resource-scheduler) (return-resources (%remaining-resources resource-scheduler)
+                                                                          required-resources))))))
 
-(defmethod data-flow:schedule ((scheduler resource-scheduler) runnable &key required-resources)
-  (check-type required-resources (or null runnable-resources))
+(defmethod data-flow:schedule ((scheduler resource-scheduler) runnable &rest args &key required-resources &allow-other-keys)
+  (alexandria:remove-from-plistf args :required-resources)
   (let* ((required-resources (or required-resources
-                                (funcall (%resources-function scheduler) runnable))))
-    (check-type required-resources runnable-resources)
-    (when (> required-resources (resources scheduler))
+                                 (funcall (%resources-function scheduler) runnable))))
+    (unless (test-resources-p (resources scheduler) required-resources)
       (error 'invalid-resource-requirement-error
              :scheduler scheduler
              :runnable runnable
              :required-resources required-resources
              :total-resources (resources scheduler)))
-    (call-next-method scheduler (make-instance 'runnable-with-resources
-                                               :resource-scheduler scheduler
-                                               :delegate runnable
-                                               :required-resources required-resources))))
+    (apply #'call-next-method
+           scheduler
+           (make-instance 'runnable-with-resources
+                          :resource-scheduler scheduler
+                          :delegate runnable
+                          :required-resources required-resources)
+           args)))
 
-(defmethod data-flow.thread-pool:test-and-claim-resources ((scheduler resource-scheduler) (runnable runnable-with-resources))
-  (let* ((required-resources (required-resources runnable)))
-    (when (<= required-resources
-              (%remaining-resources scheduler))
-      (decf (%remaining-resources scheduler)
-            required-resources)
-      (assert (not (minusp (%remaining-resources scheduler))))
+(defmethod data-flow.thread-pool:execute-runnable-p ((scheduler resource-scheduler) (runnable runnable-with-resources))
+  (let* ((required-resources (required-resources runnable))
+         (remaining-resources (test-and-claim-resources (%remaining-resources scheduler) required-resources)))
+    (when remaining-resources
+      (setf (%remaining-resources scheduler) remaining-resources)
       t)))
