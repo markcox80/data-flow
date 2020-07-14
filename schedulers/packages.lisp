@@ -24,4 +24,4 @@
   (:export "*DEFAULT-POLL-SECONDS*"
            "THREAD-POOL"
            "MAKE-THREAD-POOL"
-           "TEST-AND-CLAIM-RESOURCES"))
+           "EXECUTE-RUNNABLE-P"))

@@ -106,7 +106,7 @@
                           :required-resources required-resources)
            args)))
 
-(defmethod data-flow.thread-pool:test-and-claim-resources ((scheduler resource-scheduler) (runnable runnable-with-resources))
+(defmethod data-flow.thread-pool:execute-runnable-p ((scheduler resource-scheduler) (runnable runnable-with-resources))
   (let* ((required-resources (required-resources runnable))
          (remaining-resources (test-and-claim-resources (%remaining-resources scheduler) required-resources)))
     (when remaining-resources
