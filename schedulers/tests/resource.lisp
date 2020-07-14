@@ -1,7 +1,3 @@
-#-data-flow.features:threads
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (error 'data-flow.features:threads-unavailable-error))
-
 (defpackage "DATA-FLOW.RESOURCE-SCHEDULER.TESTS"
   (:use "COMMON-LISP"
         "FIVEAM")

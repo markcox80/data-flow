@@ -17,7 +17,7 @@
 
 ;;;; Threads
 
-#+thread-support
+#+(and thread-support (not force-no-thread-support))
 (pushnew 'threads *features*)
 
 (define-condition threads-unavailable-error (feature-unavailable-error)

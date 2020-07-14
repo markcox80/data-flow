@@ -41,7 +41,6 @@
 
 ;;;; Parallel Thread Pool
 
-(defparameter *default-poll-seconds* 0.0001)
 (defgeneric execution-state (object))
 
 (deftype parallel-thread-pool-execution-state ()

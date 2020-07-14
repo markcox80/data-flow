@@ -1,7 +1,3 @@
-#-data-flow.features:threads
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (error 'data-flow.features:threads-unavailable-error))
-
 (defpackage "DATA-FLOW.SCHEDULER.PARALLEL.TESTS"
   (:use "COMMON-LISP"
         "FIVEAM")
@@ -27,9 +23,18 @@
     `(call-with-every-parallel-scheduler (lambda (,var) ,@body) ,number-of-threads)))
 
 (test parallel-scheduler-p
-  (do-parallel-schedulers (scheduler 1)
-    (is-true (typep scheduler 'data-flow:parallel-scheduler))))
+  (do-parallel-schedulers (scheduler 2)
+    (let* ((number-of-threads (data-flow:number-of-threads scheduler)))
+      (check-type number-of-threads (integer 0))
+      (cond ((> number-of-threads 1)
+             (is-true (typep scheduler 'data-flow:parallel-scheduler)))
+            ((= 1 number-of-threads)
+             (is-true (typep scheduler '(or data-flow:sequential-scheduler
+                                            data-flow:parallel-scheduler))))
+            (t
+             (error "Invalid number of threads returned by scheduler ~A: ~d" scheduler number-of-threads))))))
 
+#+data-flow.features:threads
 (test start1/basic
   (do-parallel-schedulers (scheduler 5)
     (is (= 5 (data-flow:number-of-threads scheduler)))
@@ -42,6 +47,7 @@
       (bordeaux-threads:thread-yield)
       (is-true (every (complement #'bordeaux-threads:thread-alive-p) threads)))))
 
+#+data-flow.features:threads
 (test wait-until-finished
   (do-parallel-schedulers (scheduler 1)
     (let* ((lock (bordeaux-threads:make-lock "WAIT-UNTIL-FINISHED-LOCK"))
@@ -74,8 +80,6 @@
 
 (test no-jobs-and-then-execute
   (do-parallel-schedulers (scheduler 5)
-    (data-flow:start scheduler)
-    (sleep 0.25)
     (let* ((results (make-array 8 :initial-element '#:unset)))
       (dotimes (i (length results))
         (let ((state (data-flow:schedule scheduler (let* ((index i))
@@ -88,8 +92,6 @@
 
 (test no-jobs-and-then-execute1
   (do-parallel-schedulers (scheduler 4)
-    (data-flow:start1 scheduler)
-    (sleep 0.25)
     (let* ((result nil)
            (state (data-flow:schedule scheduler (lambda ()
                                                   (setf result t)))))
