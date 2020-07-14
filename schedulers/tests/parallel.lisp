@@ -72,8 +72,6 @@
 
 (test no-jobs-and-then-execute
   (do-parallel-schedulers (scheduler 5)
-    (data-flow:start scheduler)
-    (sleep 0.25)
     (let* ((results (make-array 8 :initial-element '#:unset)))
       (dotimes (i (length results))
         (let ((state (data-flow:schedule scheduler (let* ((index i))
@@ -86,8 +84,6 @@
 
 (test no-jobs-and-then-execute1
   (do-parallel-schedulers (scheduler 4)
-    (data-flow:start1 scheduler)
-    (sleep 0.25)
     (let* ((result nil)
            (state (data-flow:schedule scheduler (lambda ()
                                                   (setf result t)))))
