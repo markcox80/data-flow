@@ -45,7 +45,7 @@
                              (:file "thread-pool-common")
                              (:file "thread-pool-parallel" :if-feature data-flow.features:threads)
                              (:file "thread-pool")
-                             (:file "resource" :if-feature data-flow.features:threads)))))
+                             (:file "resource")))))
 
 (defsystem "data-flow/sequential-object"
   :author "Mark Cox"
@@ -118,8 +118,8 @@
                 :components ((:file "packages")
                              (:file "scheduler")
                              (:file "sequential")
-                             (:file "parallel" :if-feature data-flow.features:threads)
-                             (:file "resource" :if-feature data-flow.features:threads)
+                             (:file "parallel")
+                             (:file "resource")
                              (:file "thread-pool")))))
 
 (defsystem "data-flow/sequential-object/tests"

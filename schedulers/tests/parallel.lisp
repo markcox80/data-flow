@@ -1,7 +1,3 @@
-#-data-flow.features:threads
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (error 'data-flow.features:threads-unavailable-error))
-
 (defpackage "DATA-FLOW.SCHEDULER.PARALLEL.TESTS"
   (:use "COMMON-LISP"
         "FIVEAM")
@@ -30,6 +26,7 @@
   (do-parallel-schedulers (scheduler 1)
     (is-true (typep scheduler 'data-flow:parallel-scheduler))))
 
+#+data-flow.features:threads
 (test start1/basic
   (do-parallel-schedulers (scheduler 5)
     (is (= 5 (data-flow:number-of-threads scheduler)))
@@ -42,6 +39,7 @@
       (bordeaux-threads:thread-yield)
       (is-true (every (complement #'bordeaux-threads:thread-alive-p) threads)))))
 
+#+data-flow.features:threads
 (test wait-until-finished
   (do-parallel-schedulers (scheduler 1)
     (let* ((lock (bordeaux-threads:make-lock "WAIT-UNTIL-FINISHED-LOCK"))
