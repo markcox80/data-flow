@@ -88,7 +88,8 @@
         (setf (%remaining-resources resource-scheduler) (return-resources (%remaining-resources resource-scheduler)
                                                                           required-resources))))))
 
-(defmethod data-flow:schedule ((scheduler resource-scheduler) runnable &key required-resources)
+(defmethod data-flow:schedule ((scheduler resource-scheduler) runnable &rest args &key required-resources &allow-other-keys)
+  (alexandria:remove-from-plistf args :required-resources)
   (let* ((required-resources (or required-resources
                                  (funcall (%resources-function scheduler) runnable))))
     (unless (test-resources-p (resources scheduler) required-resources)
@@ -97,10 +98,13 @@
              :runnable runnable
              :required-resources required-resources
              :total-resources (resources scheduler)))
-    (call-next-method scheduler (make-instance 'runnable-with-resources
-                                               :resource-scheduler scheduler
-                                               :delegate runnable
-                                               :required-resources required-resources))))
+    (apply #'call-next-method
+           scheduler
+           (make-instance 'runnable-with-resources
+                          :resource-scheduler scheduler
+                          :delegate runnable
+                          :required-resources required-resources)
+           args)))
 
 (defmethod data-flow.thread-pool:test-and-claim-resources ((scheduler resource-scheduler) (runnable runnable-with-resources))
   (let* ((required-resources (required-resources runnable))
