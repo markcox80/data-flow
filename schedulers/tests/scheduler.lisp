@@ -180,3 +180,22 @@
       (is-true (every #'(lambda (x)
                           (eql x t))
                       results)))))
+
+(test blocking-allowed-p
+  (do-schedulers (scheduler)
+    (let* ((results (make-array 10 :initial-element '#:no-value)))
+      (dotimes (i (length results))
+        (data-flow:schedule scheduler (let* ((index i))
+                                        (lambda ()
+                                          (setf (aref results index) (data-flow:blocking-allowed-p scheduler))))))
+      (data-flow:execute scheduler)
+      (loop
+        for i from 0 below (length results)
+        for result = (elt results i)
+        do
+           (is-true (typep result '(or null (eql t))))
+
+        count (not (null result)) into count-true
+
+        finally
+           (is (= 1 count-true))))))
