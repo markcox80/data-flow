@@ -4,7 +4,9 @@
 (defun call-with-every-thread-pool (function &key (number-of-threads 1))
   (dolist (thread-pool (list #+data-flow.features:threads
                              (make-instance 'data-flow.thread-pool::parallel-thread-pool
-                                            :number-of-threads number-of-threads)))
+                                            :number-of-threads number-of-threads)
+                             (make-instance 'data-flow.thread-pool::sequential-thread-pool)
+                             (data-flow.thread-pool:make-thread-pool number-of-threads)))
     (funcall function thread-pool)))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
