@@ -23,8 +23,16 @@
     `(call-with-every-parallel-scheduler (lambda (,var) ,@body) ,number-of-threads)))
 
 (test parallel-scheduler-p
-  (do-parallel-schedulers (scheduler 1)
-    (is-true (typep scheduler 'data-flow:parallel-scheduler))))
+  (do-parallel-schedulers (scheduler 2)
+    (let* ((number-of-threads (data-flow:number-of-threads scheduler)))
+      (check-type number-of-threads (integer 0))
+      (cond ((> number-of-threads 1)
+             (is-true (typep scheduler 'data-flow:parallel-scheduler)))
+            ((= 1 number-of-threads)
+             (is-true (typep scheduler '(or data-flow:sequential-scheduler
+                                            data-flow:parallel-scheduler))))
+            (t
+             (error "Invalid number of threads returned by scheduler ~A: ~d" scheduler number-of-threads))))))
 
 #+data-flow.features:threads
 (test start1/basic
