@@ -111,3 +111,6 @@
 
 (defmethod data-flow:executingp ((scheduler sequential-scheduler))
   (not (eql (state scheduler) :paused)))
+
+(defmethod data-flow:blocking-allowed-p ((scheduler sequential-scheduler))
+  (data-flow.queue:emptyp (executing-queue scheduler)))
