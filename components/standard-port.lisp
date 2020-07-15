@@ -73,7 +73,7 @@
            :initform (data-flow.fifo:make-fifo)
            :reader %queue)))
 
-(defmethod data-flow:read-value ((port standard-input-port) &key (errorp t) no-data-value disconnected-value)
+(defmethod data-flow:read-value ((port standard-input-port) &key (errorp t) no-value-value disconnected-value)
   (data-flow:process-all-events port)
 
   (with-accessors ((%remote-component %remote-component)
@@ -93,10 +93,10 @@
                  disconnected-value))
 
             (errorp
-             (error 'data-flow:no-data-available-error :port port))
+             (error 'data-flow:no-value-available-error :port port))
 
             (t
-             no-data-value)))))
+             no-value-value)))))
 
 (defmethod data-flow:connection ((port standard-input-port))
   (data-flow:process-all-events port)

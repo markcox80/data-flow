@@ -228,7 +228,7 @@
 
 ;;;; Input port protocol
 
-(defgeneric read-value (port &key errorp no-data-value disconnected-value &allow-other-keys))
+(defgeneric read-value (port &key errorp no-value-value disconnected-value &allow-other-keys))
 (defgeneric input-port-p (port))
 
 ;; Defined elsewhere due to implementation.
@@ -237,10 +237,10 @@
 (defclass input-port (port)
   ())
 
-(define-condition no-data-available-error (port-error)
+(define-condition no-value-available-error (port-error)
   ()
   (:report (lambda (condition stream)
-             (format stream "No data available on port ~A."
+             (format stream "No value available on port ~A."
                      (port-error-port condition)))))
 
 (defmethod input-port-p (port)

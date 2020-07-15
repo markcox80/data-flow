@@ -418,13 +418,13 @@
     (data-flow:write-value 1 src-port)
     (is (= 1 (data-flow:read-value sink-port)))
 
-    (signals data-flow:no-data-available-error
+    (signals data-flow:no-value-available-error
       (data-flow:read-value sink-port))
 
-    (signals data-flow:no-data-available-error
-      (data-flow:read-value sink-port :no-data-value nil))
+    (signals data-flow:no-value-available-error
+      (data-flow:read-value sink-port :no-value-value nil))
 
-    (is-true (= -1 (data-flow:read-value sink-port :no-data-value -1 :errorp nil)))
+    (is-true (= -1 (data-flow:read-value sink-port :no-value-value -1 :errorp nil)))
 
     (data-flow:disconnect-port src-port)
 

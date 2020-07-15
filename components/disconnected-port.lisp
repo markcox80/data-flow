@@ -18,8 +18,8 @@
 (defclass disconnected-input-port (data-flow:input-port disconnected-port)
   ())
 
-(defmethod data-flow:read-value ((port disconnected-input-port) &key (errorp t) no-data-value disconnected-value &allow-other-keys)
-  (declare (ignore no-data-value))
+(defmethod data-flow:read-value ((port disconnected-input-port) &key (errorp t) no-value-value disconnected-value &allow-other-keys)
+  (declare (ignore no-value-value))
   (if errorp
       (error 'data-flow:port-disconnected-error :port port)
       disconnected-value))

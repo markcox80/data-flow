@@ -56,7 +56,7 @@
            "INPUT-PORT-P"
            "MAKE-INPUT-PORT"
            "READ-VALUE"
-           "NO-DATA-AVAILABLE-ERROR")
+           "NO-VALUE-AVAILABLE-ERROR")
 
   ;; Output Port protocol
   (:export "OUTPUT-PORT"
