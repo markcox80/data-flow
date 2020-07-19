@@ -80,4 +80,15 @@
            "CONNECTION"
            "CONNECTEDP"
 
-           "CONNECT-PORTS"))
+           "CONNECT-PORTS")
+
+  ;; Port utilities
+  (:export "READ-VALUE-CASE"
+           "SUCCESS"
+           "NO-VALUE-AVAILABLE"
+           "DISCONNECTED"
+
+           "WRITE-VALUE-CASE"
+           "SUCCESS"
+           "NO-SPACE-AVAILABLE"
+           "DISCONNECTED"))

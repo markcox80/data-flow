@@ -8,7 +8,8 @@
   :components ((:module "protocols"
                 :serial t
                 :components ((:file "packages")
-                             (:file "protocols")))))
+                             (:file "protocols")
+                             (:file "ports")))))
 
 (defsystem "data-flow/utils"
   :author "Mark Cox"

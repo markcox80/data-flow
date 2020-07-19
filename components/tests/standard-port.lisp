@@ -535,3 +535,137 @@
 
     (is-false (data-flow:requires-execution-p src))
     (is-true (data-flow:requires-execution-p sink))))
+
+(test read-value-case/success
+  (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (src (make-instance 'test-component :scheduler scheduler))
+         (src-port (data-flow:make-output-port))
+         (sink-port (data-flow:make-input-port)))
+    (data-flow:connect-ports src src-port src sink-port)
+
+    (data-flow:write-value 1 src-port)
+    (let* ((success? nil))
+      (data-flow:read-value-case (value sink-port)
+        (data-flow:success
+         (setf success? t)))
+      (is-true success?))
+
+    (data-flow:write-value 2 src-port)
+    (let* ((success? t))
+      (data-flow:read-value-case (value sink-port)
+        (data-flow:no-value-available
+         (setf success? nil))
+        (data-flow:disconnected
+         (setf success? nil)))
+      (is-true success?))
+
+    (data-flow:write-value 3 src-port)
+    (let* ((success? t))
+      (data-flow:read-value-case (value sink-port)
+        ((data-flow:no-value-available data-flow:disconnected)
+         (setf success? nil)))
+      (is-true success?))
+
+    (data-flow:write-value 4 src-port)
+    (finishes (data-flow:read-value-case (value sink-port)))))
+
+(test read-value-case/no-value-available
+  (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (src (make-instance 'test-component :scheduler scheduler))
+         (src-port (data-flow:make-output-port))
+         (sink-port (data-flow:make-input-port)))
+    (data-flow:connect-ports src src-port src sink-port)
+
+    (signals data-flow:no-value-available-error (data-flow:read-value-case (value sink-port)))
+
+    (let* ((no-value-available? nil))
+      (data-flow:read-value-case (value sink-port)
+        (data-flow:no-value-available
+         (setf no-value-available? t)))
+      (is-true no-value-available?))
+
+    (let* ((no-value-available? nil))
+      (data-flow:read-value-case (value sink-port)
+        ((data-flow:no-value-available)
+         (setf no-value-available? t)))
+      (is-true no-value-available?))))
+
+(test read-value-case/disconnected
+  (let* ((sink-port (data-flow:make-input-port)))
+    (signals data-flow:port-disconnected-error (data-flow:read-value-case (value sink-port)))
+
+    (let* ((disconnected? nil))
+      (data-flow:read-value-case (value sink-port)
+        (data-flow:disconnected
+         (setf disconnected? t)))
+      (is-true disconnected?))
+
+    (let* ((disconnected? nil))
+      (data-flow:read-value-case (value sink-port)
+        ((data-flow:disconnected)
+         (setf disconnected? t)))
+      (is-true disconnected?))))
+
+(test write-value-case/success
+  (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (src (make-instance 'test-component :scheduler scheduler))
+         (src-port (data-flow:make-output-port :total-space 1))
+         (sink-port (data-flow:make-input-port)))
+    (data-flow:connect-ports src src-port src sink-port)
+
+    (let* ((success? nil))
+      (data-flow:write-value-case (1 src-port)
+        (data-flow:success
+         (setf success? t)))
+      (is-true success?))
+    (is (eql 1 (data-flow:read-value sink-port)))
+
+    (let* ((success? nil))
+      (data-flow:write-value-case (2 src-port)
+        ((data-flow:success)
+         (setf success? t)))
+      (is-true success?))
+    (is (eql 2 (data-flow:read-value sink-port)))
+
+    (finishes (data-flow:write-value-case (3 src-port)))
+    (is (eql 3 (data-flow:read-value sink-port)))))
+
+(test write-value-case/no-space-available
+  (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (src (make-instance 'test-component :scheduler scheduler))
+         (src-port (data-flow:make-output-port :total-space 1))
+         (sink-port (data-flow:make-input-port)))
+    (data-flow:connect-ports src src-port src sink-port)
+
+    (data-flow:write-value 1 src-port)
+
+    (signals data-flow:no-space-available-error (data-flow:write-value-case (2 src-port)))
+
+    (let* ((no-space-available? nil))
+      (data-flow:write-value-case (3 src-port)
+        (data-flow:no-space-available
+         (setf no-space-available? t)))
+      (is-true no-space-available?))
+
+    (let* ((no-space-available? nil))
+      (data-flow:write-value-case (3 src-port)
+        ((data-flow:no-space-available)
+         (setf no-space-available? t)))
+      (is-true no-space-available?))))
+
+(test write-value-case/disconnected
+  (let* ((src-port (data-flow:make-output-port :total-space 1)))
+
+    (signals data-flow:port-disconnected-error (data-flow:write-value-case (1 src-port)))
+
+    (let* ((disconnected? nil))
+      (data-flow:write-value-case (3 src-port)
+        (data-flow:disconnected
+         (setf disconnected? t)))
+      (is-true disconnected?))
+
+    (let* ((disconnected? nil))
+      (data-flow:write-value-case (3 src-port)
+        ((data-flow:disconnected)
+         (setf disconnected? t)))
+      (is-true disconnected?))))
