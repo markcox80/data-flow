@@ -250,7 +250,7 @@
                                     (input-port data-flow.component.disconnected-port:disconnected-input-port)
                                     (output-component data-flow.component.standard-port:standard-port-component-mixin)
                                     (output-port data-flow.component.disconnected-port:disconnected-output-port)
-                                    &key &allow-other-keys)
+                                    &key total-space &allow-other-keys)
   ;; This method is concurrent with respect to the components and not the ports.
   (let* ((connection (make-instance 'standard-port-connection
                                     :input-port input-port
@@ -276,7 +276,9 @@
                       :disconnectedp nil)))
 
     (data-flow.sequential-object:linearize output-component
-      (let* ((port-index (%next-port-index output-component)))
+      (let* ((port-index (%next-port-index output-component))
+             (total-space (or total-space
+                              (data-flow:total-space output-port))))
         (incf (%next-port-index output-component))
         (change-class output-port 'standard-output-port
                       :component output-component
@@ -285,8 +287,8 @@
                       :remote-component input-component
                       :connection connection
                       :disconnectedp nil
-                      :total-space (data-flow:total-space output-port)
-                      :available-space (data-flow:total-space output-port))))
+                      :total-space total-space
+                      :available-space total-space)))
 
     connection))
 

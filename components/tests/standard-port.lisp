@@ -669,3 +669,19 @@
         ((data-flow:disconnected)
          (setf disconnected? t)))
       (is-true disconnected?))))
+
+(test connect-ports/total-space
+  (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (component (make-instance 'test-component :scheduler scheduler))
+         (src-port (data-flow:make-output-port :total-space 1))
+         (sink-port (data-flow:make-input-port)))
+    (loop
+      for total-space from 1 to 10
+      do
+         (data-flow:connect-ports component src-port component sink-port :total-space total-space)
+         (is (= total-space (data-flow:total-space src-port)))
+         (is (= total-space (data-flow:available-space src-port)))
+         (data-flow:disconnect-port src-port)
+         (data-flow:disconnect-port sink-port)
+         (data-flow:run component))
+    (is (= 10 (data-flow:total-space src-port)))))
