@@ -104,3 +104,22 @@
       (is (eql :scheduled (data-flow:execution-state component)))
       (data-flow:execute scheduler)
       (is (eql :running (last-value component))))))
+
+(test change-scheduler
+  (let* ((scheduler1 (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (scheduler2 (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (condition nil)
+         (component (make-test-component scheduler1 (lambda (component)
+                                                      (setf condition
+                                                            (nth-value 1
+                                                                       (ignore-errors
+                                                                        (setf (data-flow:scheduler component) scheduler1))))))))
+    (is (eql scheduler1 (data-flow:scheduler component)))
+    (setf (data-flow:scheduler component) scheduler2)
+    (data-flow:enqueue-event component "hello")
+    (signals simple-error (setf (data-flow:scheduler component) scheduler1))
+    (is (eql scheduler2 (data-flow:scheduler component)))
+    (data-flow:run (data-flow:make-component-lambda component))
+    (is-true (typep condition 'simple-error))
+    (setf (data-flow:scheduler component) scheduler1)
+    (is (eql scheduler1 (data-flow:scheduler component)))))

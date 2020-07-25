@@ -11,7 +11,8 @@
 (defclass basic-component (data-flow:component
                            data-flow.sequential-object:sequential-object)
   ((%scheduler :initarg :scheduler
-               :reader data-flow:scheduler)
+               :reader data-flow:scheduler
+               :accessor %scheduler)
    (%event-queue :initarg :event-queue
                  :initform (make-basic-component-event-queue)
                  :reader %event-queue)
@@ -22,6 +23,13 @@
 (defmethod data-flow:execution-state ((component basic-component))
   (data-flow.sequential-object:linearize component
     (%execution-state component)))
+
+(defmethod (setf data-flow:scheduler) (scheduler (component basic-component))
+  (data-flow.sequential-object:linearize component
+    (cond ((eql :stopped (%execution-state component))
+           (setf (%scheduler component) scheduler))
+          (t
+           (error "The scheduler of component ~A can only be changed if it is stopped." component)))))
 
 (defmethod data-flow:compare-and-change-execution-state ((component basic-component) old-state new-state)
   (check-type old-state data-flow:execution-state)
