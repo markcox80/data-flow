@@ -124,6 +124,11 @@
 ;; This is a non-concurrent function.
 (defgeneric scheduler (component))
 
+;; Set the scheduler to use when the component requires execution.
+;;
+;; This is a non-concurrent function.
+(defgeneric (setf scheduler) (scheduler component))
+
 ;; Add an event to the component's event queue.
 ;;
 ;; The component is scheduled for execution if the execution-state can
