@@ -43,4 +43,5 @@
                 "MAKE-FIFO")
   ;; Fifo
   (:export "FIFO"
-           "MAKE-FIFO"))
+           "MAKE-FIFO"
+           "MAKE-SRMW-FIFO"))

@@ -32,7 +32,8 @@
                              (:file "fifo")
                              (:file "linked-list")
                              (:file "bt-mutex-queue" :if-feature data-flow.features:threads)
-                             (:file "lock-free-fifo" :if-feature data-flow.features:compare-and-set)))))
+                             (:file "lock-free-fifo" :if-feature data-flow.features:compare-and-set)
+                             (:file "helpers")))))
 
 (defsystem "data-flow/schedulers"
   :author "Mark Cox"
