@@ -167,22 +167,29 @@
   (setf (%unseen-events-integer component) 0))
 
 (defun process-disconnect-queue (disconnect-queue)
-  (data-flow.queue:doqueue (port disconnect-queue)
-    (cond ((typep port 'data-flow.component.disconnected-port:disconnected-port)
-           ;; Port has already been disconnected.
-           )
+  (let* ((not-ready nil))
+    (data-flow.queue:doqueue (port disconnect-queue)
+      (cond ((typep port 'data-flow.component.disconnected-port:disconnected-port)
+             ;; Port has already been disconnected.
+             )
 
-          ((data-flow:input-port-p port)
-           (setf (%unseen-events-p port) nil)
-           (change-class port 'data-flow.component.disconnected-port:disconnected-input-port))
+            ((data-flow:input-port-p port)
+             (setf (%unseen-events-p port) nil)
+             (cond ((data-flow.queue:emptyp (%queue port))
+                    (change-class port 'data-flow.component.disconnected-port:disconnected-input-port))
+                   (t
+                    (push port not-ready))))
 
-          ((data-flow:output-port-p port)
-           (setf (%unseen-events-p port) nil)
-           (change-class port 'data-flow.component.disconnected-port:disconnected-output-port
-                         :total-space (data-flow:total-space port)))
+            ((data-flow:output-port-p port)
+             (setf (%unseen-events-p port) nil)
+             (change-class port 'data-flow.component.disconnected-port:disconnected-output-port
+                           :total-space (data-flow:total-space port)))
 
-          (t
-           (error "The port ~A is neither an INPUT port nor an OUTPUT port." port)))))
+            (t
+             (error "The port ~A is neither an INPUT port nor an OUTPUT port." port))))
+    (dolist (port not-ready)
+      (data-flow.queue:enqueue disconnect-queue port)))
+  (values))
 
 (defmethod data-flow:run :after ((component standard-port-component-mixin))
   (process-disconnect-queue (%disconnect-queue component)))

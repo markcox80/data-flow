@@ -505,6 +505,34 @@
 
     (is-false (data-flow:requires-execution-p src))))
 
+(test read-value/values-after-disconnection/disconnected-port
+  (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (src (make-instance 'test-component :scheduler scheduler))
+         (src-port (data-flow:make-output-port))
+         (sink-port (data-flow:make-input-port)))
+    (data-flow:connect-ports src src-port src sink-port :total-space 5)
+    (dotimes (i 5)
+      (data-flow:write-value i src-port))
+    (data-flow:run src)
+    (is (= 0 (data-flow:read-value sink-port)))
+
+    (data-flow:run src)
+    (data-flow:disconnect-port src-port)
+    (is (= 1 (data-flow:read-value sink-port)))
+
+    (data-flow:run src)
+    (is (= 2 (data-flow:read-value sink-port)))
+    (is (= 3 (data-flow:read-value sink-port)))
+
+    (data-flow:run src)
+    (is (= 4 (data-flow:read-value sink-port)))
+    (signals data-flow:port-disconnected-error (data-flow:read-value sink-port))
+    (is-true (typep sink-port 'data-flow.component.standard-port:standard-port))
+
+    (data-flow:run src)
+    (signals data-flow:port-disconnected-error (data-flow:read-value sink-port))
+    (is-true (typep sink-port 'data-flow.component.disconnected-port:disconnected-port))))
+
 (test read-and-write-events
   (let* ((scheduler (data-flow.sequential-scheduler:make-sequential-scheduler))
          (src (make-instance 'test-component :scheduler scheduler))
