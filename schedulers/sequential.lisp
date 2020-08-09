@@ -94,10 +94,14 @@
                           internal-time-units-per-second)
                        seconds)))
     do
-       (handler-case (data-flow:run (data-flow.queue:dequeue executing-queue))
-         (error (c)
-           (setf (error-condition scheduler) c
-                 (state scheduler) :executing1)))
+       (let* ((runnable (data-flow.queue:dequeue executing-queue)))
+         (handler-case (data-flow:run runnable)
+           (error (c)
+             (setf (error-condition scheduler) (make-instance 'data-flow:execution-error
+                                                              :scheduler scheduler
+                                                              :condition c
+                                                              :runnable runnable)
+                   (state scheduler) :executing1))))
        (decf (remaining-count scheduler)))
   (when (data-flow.queue:emptyp (executing-queue scheduler))
     (setf (state scheduler) :paused)
