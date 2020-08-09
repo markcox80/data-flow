@@ -36,7 +36,10 @@
        (setf last-error nil)
        (handler-case (data-flow:run runnable)
          (error (e)
-           (setf last-error e)))))
+           (setf last-error (make-instance 'data-flow:execution-error
+                                           :scheduler scheduler
+                                           :condition e
+                                           :runnable (original-runnable runnable)))))))
 
 
 ;;;; Parallel Thread Pool
