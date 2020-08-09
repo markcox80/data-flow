@@ -21,6 +21,11 @@
            "EXECUTE"
            "BLOCKING-ALLOWED-P"
 
+           "EXECUTION-ERROR"
+           "EXECUTION-ERROR-RUNNABLE"
+           "EXECUTION-ERROR-CONDITION"
+           "EXECUTION-ERROR-SCHEDULER"
+
            "PARALLEL-SCHEDULER"
            "NUMBER-OF-THREADS"
            "THREADS"

@@ -65,6 +65,27 @@
 ;; START, WAIT-UNTIL-FINISHED and CLEANUP.
 (defgeneric execute (scheduler))
 
+(define-condition execution-error (error)
+  ((%scheduler :initarg :scheduler
+               :reader execution-error-scheduler)
+   (%runnable :initarg :runnable
+              :reader execution-error-runnable)
+   (%condition :initarg :condition
+               :reader execution-error-condition))
+  (:documentation "Any unhandled errors by a runnable are wrapped in a EXECUTION-ERROR condition.")
+  (:report (lambda (condition stream)
+             (pprint-logical-block (stream nil)
+               (format stream "Unhandled error encountered by scheduler ~A.~%~%"
+                       (execution-error-scheduler condition))
+               (pprint-logical-block (stream nil :per-line-prefix "  ")
+                 (print-object (execution-error-condition condition) stream))
+               (pprint-newline :mandatory stream)
+               (pprint-newline :mandatory stream)
+               (pprint-logical-block (stream nil)
+                 (write-string "Runnable: " stream)
+                 (pprint-indent :block 2 stream)
+                 (pprint-newline :linear stream)
+                 (print-object (execution-error-runnable condition) stream))))))
 
 ;;;; Sequential Scheduler
 
