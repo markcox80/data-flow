@@ -113,9 +113,10 @@
 
 (test error-handling/simple
   (do-schedulers (scheduler)
-    (let* ((results (make-array 5 :initial-element 0)))
-      (data-flow:schedule scheduler (lambda ()
-                                      (error 'test-error)))
+    (let* ((results (make-array 5 :initial-element 0))
+           (runnable (lambda ()
+                       (error 'test-error))))
+      (data-flow:schedule scheduler runnable)
       (dotimes (i 5)
         (let* ((index i))
           (data-flow:schedule scheduler
@@ -125,7 +126,16 @@
                                                     (lambda ()
                                                       (incf (aref results index))))))))
       (data-flow:start1 scheduler)
-      (signals test-error (data-flow:wait-until-finished scheduler))
+      (handler-case (progn
+                      (data-flow:wait-until-finished scheduler)
+                      (fail "No error condition was signalled."))
+        (data-flow:execution-error (c)
+          (is-true (typep (data-flow:execution-error-condition c)
+                          'test-error))
+          (is (eql (data-flow:execution-error-scheduler c)
+                   scheduler))
+          (is (eql (data-flow:execution-error-runnable c)
+                   runnable))))
       (is-false (data-flow:executingp scheduler))
       (is-true (every #'(lambda (x) (= 1 x)) results))
       (data-flow:start1 scheduler)
@@ -134,12 +144,22 @@
 
 (test error-handling/reset
   (do-schedulers (scheduler)
-    (data-flow:schedule scheduler (lambda ()
-                                    (error 'test-error)))
-    (data-flow:start scheduler)
-    (signals test-error (data-flow:wait-until-finished scheduler))
-    (data-flow:start scheduler)
-    (finishes (data-flow:wait-until-finished scheduler))))
+    (let* ((runnable (lambda ()
+                       (error 'test-error))))
+      (data-flow:schedule scheduler runnable)
+      (data-flow:start scheduler)
+      (handler-case (progn
+                      (data-flow:wait-until-finished scheduler)
+                      (fail "No error condition was signalled."))
+        (data-flow:execution-error (c)
+          (is-true (typep (data-flow:execution-error-condition c)
+                          'test-error))
+          (is (eql (data-flow:execution-error-scheduler c)
+                   scheduler))
+          (is (eql (data-flow:execution-error-runnable c)
+                   runnable))))
+      (data-flow:start scheduler)
+      (finishes (data-flow:wait-until-finished scheduler)))))
 
 (test multiple-starts
   (do-schedulers (scheduler)
