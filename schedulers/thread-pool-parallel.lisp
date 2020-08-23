@@ -34,7 +34,7 @@
     until (eql runnable *exit*)
     do
        (setf last-error nil)
-       (handler-case (data-flow:run runnable)
+       (handler-case (data-flow.scheduler:run-with-error-handling scheduler runnable)
          (error (e)
            (setf last-error (make-instance 'data-flow:execution-error
                                            :scheduler scheduler
