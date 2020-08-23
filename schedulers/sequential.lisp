@@ -95,7 +95,7 @@
                        seconds)))
     do
        (let* ((runnable (data-flow.queue:dequeue executing-queue)))
-         (handler-case (data-flow:run runnable)
+         (handler-case (data-flow.scheduler:run-with-error-handling scheduler runnable)
            (error (c)
              (setf (error-condition scheduler) (make-instance 'data-flow:execution-error
                                                               :scheduler scheduler
@@ -106,9 +106,11 @@
   (when (data-flow.queue:emptyp (executing-queue scheduler))
     (setf (state scheduler) :paused)
     (let* ((error-condition (error-condition scheduler)))
-      (if error-condition
-          (error error-condition)
-          t))))
+      (cond (error-condition
+             (setf (error-condition scheduler) nil)
+             (error error-condition))
+            (t
+             t)))))
 
 (defmethod data-flow:cleanup ((scheduler sequential-scheduler))
   (data-flow:wait-until-finished scheduler))

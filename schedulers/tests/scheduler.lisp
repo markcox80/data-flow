@@ -172,6 +172,25 @@
       (data-flow:cleanup scheduler)
       (finishes (data-flow:cleanup scheduler)))))
 
+(test multiple-wait-until-finished-with-errors
+  (do-schedulers (scheduler)
+    (unwind-protect
+         (dolist (start-fn (list #'data-flow:start1 #'data-flow:start))
+           (let* ((runnable (lambda ()
+                              (error 'division-by-zero))))
+             (data-flow:schedule scheduler runnable)
+             (funcall start-fn scheduler)
+             (handler-case (data-flow:wait-until-finished scheduler)
+               (data-flow:execution-error (c)
+                 (is-true (typep (data-flow:execution-error-condition c) 'division-by-zero))
+                 (is (eql runnable (data-flow:execution-error-runnable c)))
+                 (is (eql scheduler (data-flow:execution-error-scheduler c))))
+               (:no-error (&rest args)
+                 (declare (ignore args))
+                 (fail "Scheduler ~A did not signal an execution error." scheduler)))
+             (finishes (data-flow:wait-until-finished scheduler))))
+      (data-flow:cleanup scheduler))))
+
 (test cleanup-sans-wait-until-finished
   (do-schedulers (scheduler)
     (let* ((results (make-array 5 :initial-element 0)))
@@ -219,3 +238,82 @@
 
         finally
            (is (= 1 count-true))))))
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defmacro with-global-binding ((place new-value) &body body)
+    (alexandria:with-gensyms (current-value-var)
+      `(let* ((,current-value-var ,place))
+         (setf ,place ,new-value)
+         (unwind-protect (progn ,@body)
+           (setf ,place ,current-value-var)))))
+
+  (defmacro with-on-error (new-value &body body)
+    `(with-global-binding (data-flow:*on-error* ,new-value)
+       ,@body)))
+
+(test run-with-error-handling/on-error/start1
+  (with-on-error :start1
+    (let* ((runnable (lambda ()
+                       (error 'division-by-zero))))
+      (do-schedulers (scheduler)
+        (data-flow:schedule scheduler runnable)
+        (handler-case (data-flow:execute scheduler)
+          (data-flow:execution-error (c)
+            (is-true (typep (data-flow:execution-error-condition c) 'division-by-zero))
+            (is-true (eql scheduler (data-flow:execution-error-scheduler c)))
+            (is-true (eql runnable (data-flow:execution-error-runnable c))))
+          (:no-error (&rest args)
+            (declare (ignore args))
+            (fail "No error of type DATA-FLOW:EXECUTION-ERROR was signalled when using scheduler ~A." scheduler)))))))
+
+(test run-with-error-handling/on-error/debug
+  (with-on-error :debug
+    (do-schedulers (scheduler)
+      (let* ((debugged-condition nil)
+             (runnable (lambda ()
+                         (let* ((*debugger-hook* (lambda (condition next-hook)
+                                                   (declare (ignore next-hook))
+                                                   (setf debugged-condition condition)
+                                                   (invoke-restart 'data-flow.scheduler:ignore))))
+                           (error 'division-by-zero)))))
+        (data-flow:schedule scheduler runnable)
+        (data-flow:execute scheduler)
+        (is-true (typep debugged-condition 'division-by-zero)
+                 "Signalled error ~A is not of type DIVISION-BY-ZERO when using scheduler ~A."
+                 debugged-condition
+                 scheduler)))))
+
+(test run-with-error-handling/on-error/warn-and-ignore
+  (with-on-error :warn-and-ignore
+    (do-schedulers (scheduler)
+      (with-output-to-string (stream)
+        (with-global-binding (*error-output* stream)
+          (let* ((condition (make-instance 'division-by-zero))
+                 (runnable (lambda ()
+                             (error condition))))
+            (data-flow:schedule scheduler runnable)
+            (data-flow:execute scheduler)
+            (is (equalp (with-output-to-string (s)
+                          (data-flow.scheduler::run-with-error-handling/output-warning scheduler condition s))
+                        (get-output-stream-string stream)))))))))
+
+(test run-with-error-handling/on-error/warn-and-start1
+  (with-on-error :warn-and-start1
+    (do-schedulers (scheduler)
+      (with-output-to-string (stream)
+        (with-global-binding (*error-output* stream)
+          (let* ((condition (make-instance 'division-by-zero))
+                 (runnable (lambda ()
+                             (error condition))))
+            (data-flow:schedule scheduler runnable)
+            (handler-case (data-flow:execute scheduler)
+              (data-flow:execution-error (c)
+                (is-true (eql condition (data-flow:execution-error-condition c)))
+                (is-true (eql scheduler (data-flow:execution-error-scheduler c)))
+                (is-true (eql runnable (data-flow:execution-error-runnable c))))
+              (:no-error (&rest args)
+                (declare (ignore args))
+                (fail "No error of type DATA-FLOW:EXECUTION-ERROR was signalled when using scheduler ~A." scheduler)))
+            (is (equalp (with-output-to-string (s)
+                          (data-flow.scheduler::run-with-error-handling/output-warning scheduler condition s))
+                        (get-output-stream-string stream)))))))))

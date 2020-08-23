@@ -4,6 +4,16 @@
 
 (in-package "DATA-FLOW.THREAD-POOL")
 
+;;;; Utilities
+
+(defun make-thread (function &key name)
+  (let* ((fn (if *make-thread-environment-hook*
+                 (funcall *make-thread-environment-hook*)
+                 #'identity)))
+    (bordeaux-threads:make-thread (lambda ()
+                                    (funcall fn function))
+                                  :name name)))
+
 ;;;; Worker
 
 (defparameter *exit* '#:exit)
@@ -21,9 +31,9 @@
 (defun make-worker (scheduler)
   (let* ((worker (make-instance 'worker :scheduler scheduler)))
     (with-slots (%thread) worker
-      (setf %thread (bordeaux-threads:make-thread (lambda ()
-                                                    (main-worker-loop worker))
-                                                  :name "DATA-FLOW.THREAD-POOL::WORKER")))
+      (setf %thread (make-thread (lambda ()
+                                   (main-worker-loop worker))
+                                 :name "DATA-FLOW.THREAD-POOL::WORKER")))
     worker))
 
 (defun main-worker-loop (worker)
@@ -34,7 +44,7 @@
     until (eql runnable *exit*)
     do
        (setf last-error nil)
-       (handler-case (data-flow:run runnable)
+       (handler-case (data-flow.scheduler:run-with-error-handling scheduler runnable)
          (error (e)
            (setf last-error (make-instance 'data-flow:execution-error
                                            :scheduler scheduler
@@ -163,9 +173,11 @@
                          (when (eql (%execution-state thread-pool) :stopped)
                            (assert (zerop (%remaining-count thread-pool)))
                            (let* ((condition (%error thread-pool)))
-                             (if condition
-                                 (error condition)
-                                 t)))))
+                             (cond (condition
+                                    (setf (%error thread-pool) nil)
+                                    (error condition))
+                                   (t
+                                    t))))))
        (sleep poll-seconds)
     finally
        (return finished?)))
