@@ -43,6 +43,7 @@
   :components ((:module "schedulers"
                 :serial t
                 :components ((:file "packages")
+                             (:file "common")
                              (:file "sequential")
                              (:file "thread-pool-common")
                              (:file "thread-pool-parallel" :if-feature data-flow.features:threads)

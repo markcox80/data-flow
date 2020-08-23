@@ -1,3 +1,14 @@
+(defpackage "DATA-FLOW.SCHEDULER"
+  (:use "COMMON-LISP")
+  (:import-from "DATA-FLOW"
+                "*ON-ERROR*")
+  (:export "*ON-ERROR*"
+           "RUN-WITH-ERROR-HANDLING"
+           "IGNORE"
+           "START1"
+           "WARN-AND-IGNORE"
+           "WARN-AND-START1"))
+
 (defpackage "DATA-FLOW.SEQUENTIAL-SCHEDULER"
   (:use "COMMON-LISP")
   (:export "SEQUENTIAL-SCHEDULER"
