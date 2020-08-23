@@ -7,26 +7,12 @@
 ;;;; Utilities
 
 (defun make-thread (function &key name)
-  (let* ((current-standard-output *standard-output*)
-         (current-error-output *error-output*)
-         (current-debug-io *debug-io*)
-         (current-standard-input *standard-input*)
-         (current-debugger-hook *debugger-hook*)
-         (current-query-io *query-io*)
-         (current-trace-output *trace-output*)
-         (current-terminal-io *terminal-io*))
+  (let* ((fn (if *make-thread-environment-hook*
+                 (funcall *make-thread-environment-hook*)
+                 #'identity)))
     (bordeaux-threads:make-thread (lambda ()
-                                    (let* ((*standard-output* current-standard-output)
-                                           (*error-output* current-error-output)
-                                           (*debug-io* current-debug-io)
-                                           (*standard-input* current-standard-input)
-                                           (*debugger-hook* current-debugger-hook)
-                                           (*query-io* current-query-io)
-                                           (*trace-output* current-trace-output)
-                                           (*terminal-io* current-terminal-io))
-                                      (funcall function)))
+                                    (funcall fn function))
                                   :name name)))
-
 
 ;;;; Worker
 
