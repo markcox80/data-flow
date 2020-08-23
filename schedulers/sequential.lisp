@@ -95,7 +95,7 @@
                        seconds)))
     do
        (let* ((runnable (data-flow.queue:dequeue executing-queue)))
-         (handler-case (data-flow:run runnable)
+         (handler-case (data-flow.scheduler:run-with-error-handling scheduler runnable)
            (error (c)
              (setf (error-condition scheduler) (make-instance 'data-flow:execution-error
                                                               :scheduler scheduler
