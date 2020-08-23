@@ -163,9 +163,11 @@
                          (when (eql (%execution-state thread-pool) :stopped)
                            (assert (zerop (%remaining-count thread-pool)))
                            (let* ((condition (%error thread-pool)))
-                             (if condition
-                                 (error condition)
-                                 t)))))
+                             (cond (condition
+                                    (setf (%error thread-pool) nil)
+                                    (error condition))
+                                   (t
+                                    t))))))
        (sleep poll-seconds)
     finally
        (return finished?)))

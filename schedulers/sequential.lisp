@@ -106,9 +106,11 @@
   (when (data-flow.queue:emptyp (executing-queue scheduler))
     (setf (state scheduler) :paused)
     (let* ((error-condition (error-condition scheduler)))
-      (if error-condition
-          (error error-condition)
-          t))))
+      (cond (error-condition
+             (setf (error-condition scheduler) nil)
+             (error error-condition))
+            (t
+             t)))))
 
 (defmethod data-flow:cleanup ((scheduler sequential-scheduler))
   (data-flow:wait-until-finished scheduler))
