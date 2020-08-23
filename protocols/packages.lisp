@@ -25,6 +25,7 @@
            "EXECUTION-ERROR-RUNNABLE"
            "EXECUTION-ERROR-CONDITION"
            "EXECUTION-ERROR-SCHEDULER"
+           "*ON-ERROR*"
 
            "PARALLEL-SCHEDULER"
            "NUMBER-OF-THREADS"

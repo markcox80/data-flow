@@ -86,6 +86,25 @@
                  (pprint-indent :block 2 stream)
                  (pprint-newline :linear stream)
                  (print-object (execution-error-runnable condition) stream))))))
+
+(defvar *on-error* :start1
+  "This variable indicates how a scheduler handles an error signalled
+by a runnable during an invocation of DATA-FLOW:RUN.
+
+A value of :START1 indicates that the error should be caught and the
+scheduler transitions to a state as if it were started using START1.
+
+A value of :DEBUG indicates that CL:INVOKE-DEBUGGER should be called.
+
+A value of :IGNORE indicates that the error should be ignored.
+
+A value of :WARN-AND-IGNORE indicates that a message should be printed
+to *DEBUG-IO* and the error should be ignored.
+
+A value of :WARN-AND-START1 indicates that a message should be printed
+to *DEBUG-IO* and the scheduler should proceed as if the value of this
+variable were START1.
+")
 
 ;;;; Sequential Scheduler
 
