@@ -5,7 +5,7 @@
 (defun run-with-error-handling/output-warning (scheduler condition &optional (stream *error-output*))
   (let* ((text (with-output-to-string (*standard-output*)
                  (pprint-logical-block (*standard-output* nil)
-                   (format t "~&Ignoring unhandled error caught by scheduler ~A:" scheduler)
+                   (format t "Ignoring unhandled error caught by scheduler ~A:" scheduler)
                    (pprint-newline :mandatory)
                    (pprint-newline :mandatory)
                    (pprint-logical-block (*standard-output* nil :per-line-prefix "  ")
