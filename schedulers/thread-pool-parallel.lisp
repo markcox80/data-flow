@@ -4,6 +4,30 @@
 
 (in-package "DATA-FLOW.THREAD-POOL")
 
+;;;; Utilities
+
+(defun make-thread (function &key name)
+  (let* ((current-standard-output *standard-output*)
+         (current-error-output *error-output*)
+         (current-debug-io *debug-io*)
+         (current-standard-input *standard-input*)
+         (current-debugger-hook *debugger-hook*)
+         (current-query-io *query-io*)
+         (current-trace-output *trace-output*)
+         (current-terminal-io *terminal-io*))
+    (bordeaux-threads:make-thread (lambda ()
+                                    (let* ((*standard-output* current-standard-output)
+                                           (*error-output* current-error-output)
+                                           (*debug-io* current-debug-io)
+                                           (*standard-input* current-standard-input)
+                                           (*debugger-hook* current-debugger-hook)
+                                           (*query-io* current-query-io)
+                                           (*trace-output* current-trace-output)
+                                           (*terminal-io* current-terminal-io))
+                                      (funcall function)))
+                                  :name name)))
+
+
 ;;;; Worker
 
 (defparameter *exit* '#:exit)
@@ -21,9 +45,9 @@
 (defun make-worker (scheduler)
   (let* ((worker (make-instance 'worker :scheduler scheduler)))
     (with-slots (%thread) worker
-      (setf %thread (bordeaux-threads:make-thread (lambda ()
-                                                    (main-worker-loop worker))
-                                                  :name "DATA-FLOW.THREAD-POOL::WORKER")))
+      (setf %thread (make-thread (lambda ()
+                                   (main-worker-loop worker))
+                                 :name "DATA-FLOW.THREAD-POOL::WORKER")))
     worker))
 
 (defun main-worker-loop (worker)
