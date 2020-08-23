@@ -172,6 +172,25 @@
       (data-flow:cleanup scheduler)
       (finishes (data-flow:cleanup scheduler)))))
 
+(test multiple-wait-until-finished-with-errors
+  (do-schedulers (scheduler)
+    (unwind-protect
+         (dolist (start-fn (list #'data-flow:start1 #'data-flow:start))
+           (let* ((runnable (lambda ()
+                              (error 'division-by-zero))))
+             (data-flow:schedule scheduler runnable)
+             (funcall start-fn scheduler)
+             (handler-case (data-flow:wait-until-finished scheduler)
+               (data-flow:execution-error (c)
+                 (is-true (typep (data-flow:execution-error-condition c) 'division-by-zero))
+                 (is (eql runnable (data-flow:execution-error-runnable c)))
+                 (is (eql scheduler (data-flow:execution-error-scheduler c))))
+               (:no-error (&rest args)
+                 (declare (ignore args))
+                 (fail "Scheduler ~A did not signal an execution error." scheduler)))
+             (finishes (data-flow:wait-until-finished scheduler))))
+      (data-flow:cleanup scheduler))))
+
 (test cleanup-sans-wait-until-finished
   (do-schedulers (scheduler)
     (let* ((results (make-array 5 :initial-element 0)))
