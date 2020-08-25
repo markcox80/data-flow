@@ -4,6 +4,7 @@
 (defsystem "data-flow/protocols"
   :author "Mark Cox"
   :description "Protocols for the data-flow system."
+  :depends-on ("alexandria")
   :serial t
   :components ((:module "protocols"
                 :serial t
@@ -14,6 +15,7 @@
 (defsystem "data-flow/utils"
   :author "Mark Cox"
   :description "Utilities for the data-flow system."
+  :depends-on ("alexandria")
   :serial t
   :components ((:module "utils"
                 :serial t
