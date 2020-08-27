@@ -42,7 +42,9 @@
            "PROCESS-ALL-EVENTS"
            "PROCESS-EVENT"
            "REQUIRES-EXECUTION-P"
-           "RUN")
+           "RUN"
+
+           "*SCHEDULER*")
 
   ;; Component protocol implementations
   (:export "BASIC-COMPONENT"

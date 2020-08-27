@@ -225,6 +225,9 @@ variable were START1.
 (defclass component ()
   ())
 
+(defvar *scheduler* nil
+  "The scheduler used by all components if none is specified.")
+
 ;; The BASIC-COMPONENT class provides an implementation of the
 ;; component protocol. It has no support for ports.
 ;;

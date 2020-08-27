@@ -11,6 +11,7 @@
 (defclass basic-component (data-flow:component
                            data-flow.sequential-object:sequential-object)
   ((%scheduler :initarg :scheduler
+               :initform data-flow:*scheduler*
                :reader data-flow:scheduler
                :accessor %scheduler)
    (%event-queue :initarg :event-queue
