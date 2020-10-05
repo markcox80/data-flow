@@ -53,6 +53,17 @@
 
 ;; Execute all tasks until no tasks are left or a single task has
 ;; signalled an error.
+;;
+;; This generic function must return two values: FINISHED? and NEW?.
+;;
+;; Returns (values NIL NIL) if SCHEDULER hasn't finished within SECONDS
+;; of elapsed time.
+;;
+;; Returns (values T NIL) if SCHEDULER has finished but nothing new
+;; was executed since the last time WAIT-UNTIL-FINISHED-WAS executed.
+;;
+;; Returns (values T T) if SCHEDULER has finished and something new
+;; was executed since the last time WAIT-UNTIL-FINISHED-WAS executed.
 (defgeneric wait-until-finished (scheduler &key seconds &allow-other-keys))
 
 ;; Delete any resources associated with the scheduler. Users are
