@@ -54,20 +54,32 @@
 ;; Execute all tasks until no tasks are left or a single task has
 ;; signalled an error.
 ;;
-;; This generic function must return two values: FINISHED? and NEW?.
+;; If the scheduler was started using START1, then upon normal
+;; completion of WAIT-UNTIL-FINISHED, EXECUTINGP will return NIL and
+;; any scheduled jobs will be queued until START1 or START is applied
+;; to the scheduler.
+;;
+;; If the scheduler was started using START, then upon normal
+;; completion of WAIT-UNTIL-FINISHED, EXECUTINGP will return T and any
+;; scheduled jobs will be executed by the scheduler.
+;;
+;; Methods for this generic function must return two values: FINISHED?
+;; and NEW?.
 ;;
 ;; Returns (values NIL NIL) if SCHEDULER hasn't finished within SECONDS
 ;; of elapsed time.
 ;;
 ;; Returns (values T NIL) if SCHEDULER has finished but nothing new
-;; was executed since the last time WAIT-UNTIL-FINISHED-WAS executed.
+;; was executed since the last time WAIT-UNTIL-FINISHED was applied to
+;; the scheduler.
 ;;
 ;; Returns (values T T) if SCHEDULER has finished and something new
-;; was executed since the last time WAIT-UNTIL-FINISHED-WAS executed.
+;; was executed since the last time WAIT-UNTIL-FINISHED was applied to
+;; the scheduler.
 (defgeneric wait-until-finished (scheduler &key seconds &allow-other-keys))
 
 ;; Delete any resources associated with the scheduler. Users are
-;; allowed to start the scheduler after cleaning.
+;; allowed to start the scheduler again after invoking CLEANUP.
 (defgeneric cleanup (scheduler))
 
 ;; START1, WAIT-UNTIL-FINISHED and CLEANUP.
