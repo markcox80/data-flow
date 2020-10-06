@@ -63,6 +63,12 @@
 ;; completion of WAIT-UNTIL-FINISHED, EXECUTINGP will return T and any
 ;; scheduled jobs will be executed by the scheduler.
 ;;
+;; If an error is signalled by any runnable executed by the scheduler
+;; then the scheduler will handle the error according to the value of
+;; *ON-ERROR*. If the user requests the scheduler to transition to a
+;; START1 state, then WAIT-UNTIL-FINISHED will resignal the error
+;; signalled by the runnable.
+;;
 ;; Methods for this generic function must return two values: FINISHED?
 ;; and NEW?.
 ;;
