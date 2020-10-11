@@ -9,7 +9,8 @@
     for scheduler = (funcall creation-function)
     do
        (unwind-protect (funcall function scheduler)
-         (data-flow:cleanup scheduler))))
+         (data-flow:cleanup scheduler)
+         (assert (not (data-flow:executingp scheduler))))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defmacro do-schedulers ((var) &body body)
@@ -33,6 +34,7 @@
       (is (= 2 (data-flow:count-queued-runnables state2)))
       (data-flow:start1 scheduler)
       (data-flow:wait-until-finished scheduler)
+      (is-false (data-flow:executingp scheduler))
       (let* ((state3 (data-flow:schedule scheduler (constantly 3))))
         (is (= 1 (data-flow:count-queued-runnables state3)))
         (is-true (zerop (data-flow:count-remaining-runnables state3)))))))
@@ -45,6 +47,7 @@
       (is (= 2 (data-flow:count-queued-runnables state2)))
       (data-flow:start scheduler)
       (data-flow:wait-until-finished scheduler)
+      (is-true (data-flow:executingp scheduler))
       (let* ((state3 (data-flow:schedule scheduler (constantly 3))))
         (is (zerop (data-flow:count-queued-runnables state3)))
         (is (= 1 (data-flow:count-remaining-runnables state3)))))))
