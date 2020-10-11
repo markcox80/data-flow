@@ -114,7 +114,8 @@
              t)))))
 
 (defmethod data-flow:cleanup ((scheduler sequential-scheduler))
-  (data-flow:wait-until-finished scheduler))
+  (multiple-value-prog1 (data-flow:wait-until-finished scheduler)
+    (setf (state scheduler) :paused)))
 
 (defmethod data-flow:executingp ((scheduler sequential-scheduler))
   (not (eql (state scheduler) :paused)))
