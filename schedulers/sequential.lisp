@@ -104,7 +104,8 @@
                    (state scheduler) :executing1))))
        (decf (remaining-count scheduler)))
   (when (data-flow.queue:emptyp (executing-queue scheduler))
-    (setf (state scheduler) :paused)
+    (when (eql (state scheduler) :executing1)
+      (setf (state scheduler) :paused))
     (let* ((error-condition (error-condition scheduler)))
       (cond (error-condition
              (setf (error-condition scheduler) nil)

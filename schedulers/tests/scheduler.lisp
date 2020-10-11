@@ -25,7 +25,19 @@
     (let* ((state (data-flow:schedule scheduler (constantly 1))))
       (is-true (typep state 'data-flow:scheduler-state)))))
 
-(test schedule/queued-runnables
+(test schedule/queued-runnables/start1
+  (do-schedulers (scheduler)
+    (let* ((state1 (data-flow:schedule scheduler (constantly 1)))
+           (state2 (data-flow:schedule scheduler (constantly 2))))
+      (is (= 1 (data-flow:count-queued-runnables state1)))
+      (is (= 2 (data-flow:count-queued-runnables state2)))
+      (data-flow:start1 scheduler)
+      (data-flow:wait-until-finished scheduler)
+      (let* ((state3 (data-flow:schedule scheduler (constantly 3))))
+        (is (= 1 (data-flow:count-queued-runnables state3)))
+        (is-true (zerop (data-flow:count-remaining-runnables state3)))))))
+
+(test schedule/queued-runnables/start
   (do-schedulers (scheduler)
     (let* ((state1 (data-flow:schedule scheduler (constantly 1)))
            (state2 (data-flow:schedule scheduler (constantly 2))))
@@ -34,7 +46,8 @@
       (data-flow:start scheduler)
       (data-flow:wait-until-finished scheduler)
       (let* ((state3 (data-flow:schedule scheduler (constantly 3))))
-        (is (= 1 (data-flow:count-queued-runnables state3)))))))
+        (is (zerop (data-flow:count-queued-runnables state3)))
+        (is (= 1 (data-flow:count-remaining-runnables state3)))))))
 
 (test schedule/remaining-runnables/execute1
   (do-schedulers (scheduler)

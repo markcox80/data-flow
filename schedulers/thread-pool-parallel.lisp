@@ -170,8 +170,8 @@
                       seconds)))
     do
        (setf finished? (data-flow.sequential-object:linearize thread-pool
-                         (when (eql (%execution-state thread-pool) :stopped)
-                           (assert (zerop (%remaining-count thread-pool)))
+                         (assert (not (minusp (%remaining-count thread-pool))))
+                         (when (zerop (%remaining-count thread-pool))
                            (let* ((condition (%error thread-pool)))
                              (cond (condition
                                     (setf (%error thread-pool) nil)
@@ -190,9 +190,9 @@
     until finished?
     do
        (data-flow.sequential-object:linearize thread-pool
-         (when (eql (%execution-state thread-pool) :stopped)
-           (assert (zerop (%remaining-count thread-pool)))
-           (setf workers (%workers thread-pool)
+         (when (zerop (%remaining-count thread-pool))
+           (setf (%execution-state thread-pool) :stopped
+                 workers (%workers thread-pool)
                  (%workers thread-pool) nil
                  finished? t)
            (dolist (worker workers)
@@ -240,7 +240,8 @@
                               (when (execute-runnable-p thread-pool runnable)
                                 (%pop-executable-queue thread-pool)
                                 runnable))
-                             ((zerop (%remaining-count thread-pool))
+                             ((and (zerop (%remaining-count thread-pool))
+                                   (eql (%execution-state thread-pool) :executing1))
                               (setf (%execution-state thread-pool) :stopped)
                               nil))))
     until runnable
