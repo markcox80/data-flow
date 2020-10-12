@@ -86,8 +86,8 @@
   (check-type seconds (or null (real 0)))
   (loop
     with executing-queue = (executing-queue scheduler)
-    with start-time = (get-internal-run-time)
-    for current-time = (get-internal-run-time)
+    with start-time = (get-internal-real-time)
+    for current-time = (get-internal-real-time)
     while (and (not (data-flow.queue:emptyp executing-queue))
                (or (null seconds)
                    (<= (/ (- current-time start-time)
