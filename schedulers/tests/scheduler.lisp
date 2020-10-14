@@ -188,6 +188,77 @@
       (data-flow:cleanup scheduler)
       (finishes (data-flow:cleanup scheduler)))))
 
+(test wait-until-finished-with-timeout
+  (do-schedulers (scheduler)
+    (let* ((task1 nil)
+           (task2 nil)
+           (task3 nil))
+      (data-flow:schedule scheduler (lambda ()
+                                      (sleep 0.5)
+                                      (setf task1 t)))
+      (data-flow:schedule scheduler (lambda ()
+                                      (sleep 0.5)
+                                      (setf task2 t)))
+      (data-flow:schedule scheduler (lambda ()
+                                      (sleep 0.5)
+                                      (setf task3 t)))
+      (data-flow:start scheduler)
+      (multiple-value-bind (finished? new?) (data-flow:wait-until-finished scheduler :seconds 0.4)
+        (is-false finished?)
+        (is-true new?))
+
+      ;; task1 may be NIL or T for an arbitrary scheduler
+      (is-false task2)
+      (is-false task3)
+      (multiple-value-bind (finished? new?) (data-flow:wait-until-finished scheduler :seconds 0.4)
+        (is-false finished?)
+        (is-false new?))
+
+      (is-true task1)
+      ;; task2 may new NIL or T for an arbitrary scheduler
+      (is-false task3)
+      (multiple-value-bind (finished? new?) (data-flow:wait-until-finished scheduler :seconds 1.5)
+        (is-true finished?)
+        (is-false new?))
+
+      (is-true task1)
+      (is-true task2)
+      (is-true task3))))
+
+(test wait-until-finished-with-timeout/with-schedule-inside-runnable
+  (do-schedulers (scheduler)
+    (let* ((task1 nil)
+           (task2 nil)
+           (task3 nil))
+      (data-flow:schedule scheduler (lambda ()
+                                      (sleep 0.5)
+                                      (setf task1 t)))
+      (data-flow:schedule scheduler (lambda ()
+                                      (sleep 0.5)
+                                      (setf task2 t)
+                                      (data-flow:schedule scheduler (lambda ()
+                                                                      (sleep 0.5)
+                                                                      (setf task3 t)))))
+      (data-flow:start scheduler)
+      (multiple-value-bind (finished? new?) (data-flow:wait-until-finished scheduler :seconds 0.4)
+        (is-false finished?)
+        (is-true new?))
+
+      ;; task1 may be T or NIL for an arbitrary scheduler
+      (is-false task2)
+      (is-false task3)
+
+      (multiple-value-bind (finished? new?) (data-flow:wait-until-finished scheduler :seconds 2)
+        (is-true finished?)
+        (is-true new?))
+
+      (is-true task1)
+      (is-true task2)
+      (is-true task3)
+      (multiple-value-bind (finished? new?) (data-flow:wait-until-finished scheduler)
+        (is-true finished?)
+        (is-false new?)))))
+
 (test multiple-wait-until-finished-with-errors
   (do-schedulers (scheduler)
     (unwind-protect
