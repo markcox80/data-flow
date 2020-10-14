@@ -89,6 +89,8 @@
                       :reader %executable-queue)
    (%executable-queue-top :initform nil
                           :accessor %executable-queue-top)
+   (%new-tasks-p :initform nil
+                 :accessor %new-tasks-p)
    (%remaining-count :initform 0
                      :accessor %remaining-count)
    (%queued-count :initform 0
@@ -110,6 +112,7 @@
                      (%scheduled-queue thread-pool))
                     (:executing
                      (incf (%remaining-count thread-pool))
+                     (setf (%new-tasks-p thread-pool) t)
                      (%executable-queue thread-pool)))))
       (data-flow.queue:enqueue queue runnable)
       (make-parallel-thread-pool-state (%remaining-count thread-pool)
@@ -127,8 +130,11 @@
              (%error thread-pool) nil)
 
        (let* ((executable-queue (%executable-queue thread-pool)))
-         (data-flow.queue:doqueue (runnable (%scheduled-queue thread-pool))
-           (data-flow.queue:enqueue executable-queue runnable))
+         (unless (data-flow.queue:emptyp (%scheduled-queue thread-pool))
+           (setf (%new-tasks-p thread-pool) t)
+           (data-flow.queue:doqueue (runnable (%scheduled-queue thread-pool))
+             (data-flow.queue:enqueue executable-queue runnable)))
+
          (setf (%remaining-count thread-pool) (%queued-count thread-pool)
                (%queued-count thread-pool) 0)
          (unless (%workers thread-pool)
@@ -160,6 +166,8 @@
   (check-type poll-seconds (or null (real 0)))
   (loop
     with finished? = nil
+    with new-tasks? = nil
+    with error = nil
     with poll-seconds = (or poll-seconds (poll-seconds thread-pool))
     with start = (get-internal-real-time)
     for current = (get-internal-real-time)
@@ -169,18 +177,20 @@
                          internal-time-units-per-second)
                       seconds)))
     do
-       (setf finished? (data-flow.sequential-object:linearize thread-pool
-                         (assert (not (minusp (%remaining-count thread-pool))))
-                         (when (zerop (%remaining-count thread-pool))
-                           (let* ((condition (%error thread-pool)))
-                             (cond (condition
-                                    (setf (%error thread-pool) nil)
-                                    (error condition))
-                                   (t
-                                    t))))))
+       (data-flow.sequential-object:linearize thread-pool
+         (assert (not (minusp (%remaining-count thread-pool))))
+         (setf new-tasks? (or new-tasks?
+                              (%new-tasks-p thread-pool))
+               (%new-tasks-p thread-pool) nil)
+         (when (zerop (%remaining-count thread-pool))
+           (setf finished? t
+                 error (%error thread-pool)
+                 (%error thread-pool) nil)))
        (sleep poll-seconds)
     finally
-       (return finished?)))
+       (return (if error
+                   (error error)
+                   (values finished? new-tasks?)))))
 
 (defmethod data-flow:cleanup ((thread-pool parallel-thread-pool))
   (loop
