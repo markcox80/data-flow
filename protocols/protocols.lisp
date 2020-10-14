@@ -69,19 +69,20 @@
 ;; START1 state, then WAIT-UNTIL-FINISHED will resignal the error
 ;; signalled by the runnable.
 ;;
-;; Methods for this generic function must return two values: FINISHED?
-;; and NEW?.
+;; The SECONDS argument specifies that WAIT-UNTIL-FINISHED will return
+;; if SECONDS of real time has elapsed. If no value is supplied for
+;; SECONDS then WAIT-UNTIL-FINISHED must wait indefinitely.
 ;;
-;; Returns (values NIL NIL) if SCHEDULER hasn't finished within SECONDS
-;; of elapsed time.
+;; Methods for this generic function return two values: FINISHED? and
+;; NEW?.
 ;;
-;; Returns (values T NIL) if SCHEDULER has finished but nothing new
-;; was executed since the last time WAIT-UNTIL-FINISHED was applied to
-;; the scheduler.
+;; FINISHED? is T if SCHEDULER has finished executing within SECONDS
+;; of elapsed time, otherwise NIL.
 ;;
-;; Returns (values T T) if SCHEDULER has finished and something new
-;; was executed since the last time WAIT-UNTIL-FINISHED was applied to
-;; the scheduler.
+;; NEW? is T if SCHEDULE was applied to SCHEDULER between the previous
+;; call to WAIT-UNTIL-FINISHED and the moment immediately before the
+;; current invocation of WAIT-UNTIL-FINISHED returns control to the
+;; caller.
 (defgeneric wait-until-finished (scheduler &key seconds &allow-other-keys))
 
 ;; Delete any resources associated with the scheduler. Users are
