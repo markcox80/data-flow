@@ -60,6 +60,48 @@
     (is-true (typep thread-pool 'data-flow:sequential-scheduler))
     (is (= 1 (data-flow:number-of-threads thread-pool)))))
 
+(test multiple-thread-pool-schedulers/execute1
+  (let* ((scheduler1 (data-flow.thread-pool:make-thread-pool 1))
+         (scheduler2 (data-flow.thread-pool:make-thread-pool 1))
+         (task1 nil)
+         (task2 nil)
+         (task3 nil)
+         (task4 nil))
+    (data-flow:schedule scheduler1 (lambda ()
+                                     (setf task1 t)
+                                     (data-flow:schedule scheduler2 (lambda ()
+                                                                      (setf task3 t)))))
+    (data-flow:schedule scheduler2 (lambda ()
+                                     (setf task2 t)
+                                     (data-flow:schedule scheduler1 (lambda ()
+                                                                      (setf task4 t)))))
+    (data-flow:execute1 scheduler1 scheduler2)
+    ;; Do not test TASK3 as it will be NIL if the call to START1 in
+    ;; EXECUTE1 occurs before the first runnable above schedules the
+    ;; task on SCHEDULER2. If START1 is called afterwards, then TASK3
+    ;; will be T.
+    (is-true (and task1 task2 (not task4)))
+
+    (data-flow:execute1 scheduler1 scheduler2)
+    (is-true (and task1 task2 task3 task4))))
+
+(test multiple-thread-pool-schedulers/execute
+  (let* ((scheduler1 (data-flow.thread-pool:make-thread-pool 1))
+         (scheduler2 (data-flow.thread-pool:make-thread-pool 1))
+         (task1 nil)
+         (task2 nil)
+         (task3 nil)
+         (task4 nil))
+    (data-flow:schedule scheduler1 (lambda ()
+                                     (setf task1 t)
+                                     (data-flow:schedule scheduler2 (lambda ()
+                                                                      (setf task3 t)))))
+    (data-flow:schedule scheduler2 (lambda ()
+                                     (setf task2 t)
+                                     (data-flow:schedule scheduler1 (lambda ()
+                                                                      (setf task4 t)))))
+    (data-flow:execute scheduler1 scheduler2)
+    (is-true (and task1 task2 task3 task4))))
 
 ;;;; Add the resource scheduler to other test suites.
 

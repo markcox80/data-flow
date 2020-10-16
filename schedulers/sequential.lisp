@@ -21,6 +21,9 @@
    (%executing-queue :initarg :executing-queue
                      :initform (data-flow.fifo:make-fifo)
                      :reader executing-queue)
+   (%new-tasks-p :initarg :new-tasks-p
+                 :initform nil
+                 :accessor new-tasks-p)
    (%state :initarg :state
            :initform :paused
            :accessor state)
@@ -46,6 +49,7 @@
                               (incf (queued-count scheduler))
                               (scheduled-queue scheduler))
                              (:executing
+                              (setf (new-tasks-p scheduler) t)
                               (incf (remaining-count scheduler))
                               (executing-queue scheduler)))
                            runnable)
@@ -59,6 +63,8 @@
     (:paused
      (assert (zerop (remaining-count scheduler)))
      (let* ((executing-queue (executing-queue scheduler)))
+       (unless (data-flow.queue:emptyp (scheduled-queue scheduler))
+         (setf (new-tasks-p scheduler) t))
        (data-flow.queue:doqueue (runnable (scheduled-queue scheduler))
          (data-flow.queue:enqueue executing-queue runnable)))
      (setf (error-condition scheduler) nil
@@ -86,8 +92,8 @@
   (check-type seconds (or null (real 0)))
   (loop
     with executing-queue = (executing-queue scheduler)
-    with start-time = (get-internal-run-time)
-    for current-time = (get-internal-run-time)
+    with start-time = (get-internal-real-time)
+    for current-time = (get-internal-real-time)
     while (and (not (data-flow.queue:emptyp executing-queue))
                (or (null seconds)
                    (<= (/ (- current-time start-time)
@@ -103,17 +109,23 @@
                                                               :runnable runnable)
                    (state scheduler) :executing1))))
        (decf (remaining-count scheduler)))
-  (when (data-flow.queue:emptyp (executing-queue scheduler))
-    (setf (state scheduler) :paused)
-    (let* ((error-condition (error-condition scheduler)))
-      (cond (error-condition
-             (setf (error-condition scheduler) nil)
-             (error error-condition))
-            (t
-             t)))))
+
+  (let* ((error-condition (error-condition scheduler))
+         (new-tasks? (new-tasks-p scheduler)))
+    (setf (new-tasks-p scheduler) nil)
+    (when (eql (state scheduler) :executing1)
+      (setf (state scheduler) :paused))
+    (cond (error-condition
+           (setf (error-condition scheduler) nil)
+           (error error-condition))
+          ((data-flow.queue:emptyp (executing-queue scheduler))
+           (values t new-tasks?))
+          (t
+           (values nil new-tasks?)))))
 
 (defmethod data-flow:cleanup ((scheduler sequential-scheduler))
-  (data-flow:wait-until-finished scheduler))
+  (multiple-value-prog1 (data-flow:wait-until-finished scheduler)
+    (setf (state scheduler) :paused)))
 
 (defmethod data-flow:executingp ((scheduler sequential-scheduler))
   (not (eql (state scheduler) :paused)))

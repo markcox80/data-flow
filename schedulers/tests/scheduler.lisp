@@ -9,7 +9,8 @@
     for scheduler = (funcall creation-function)
     do
        (unwind-protect (funcall function scheduler)
-         (data-flow:cleanup scheduler))))
+         (data-flow:cleanup scheduler)
+         (assert (not (data-flow:executingp scheduler))))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defmacro do-schedulers ((var) &body body)
@@ -25,7 +26,20 @@
     (let* ((state (data-flow:schedule scheduler (constantly 1))))
       (is-true (typep state 'data-flow:scheduler-state)))))
 
-(test schedule/queued-runnables
+(test schedule/queued-runnables/start1
+  (do-schedulers (scheduler)
+    (let* ((state1 (data-flow:schedule scheduler (constantly 1)))
+           (state2 (data-flow:schedule scheduler (constantly 2))))
+      (is (= 1 (data-flow:count-queued-runnables state1)))
+      (is (= 2 (data-flow:count-queued-runnables state2)))
+      (data-flow:start1 scheduler)
+      (data-flow:wait-until-finished scheduler)
+      (is-false (data-flow:executingp scheduler))
+      (let* ((state3 (data-flow:schedule scheduler (constantly 3))))
+        (is (= 1 (data-flow:count-queued-runnables state3)))
+        (is-true (zerop (data-flow:count-remaining-runnables state3)))))))
+
+(test schedule/queued-runnables/start
   (do-schedulers (scheduler)
     (let* ((state1 (data-flow:schedule scheduler (constantly 1)))
            (state2 (data-flow:schedule scheduler (constantly 2))))
@@ -33,8 +47,10 @@
       (is (= 2 (data-flow:count-queued-runnables state2)))
       (data-flow:start scheduler)
       (data-flow:wait-until-finished scheduler)
+      (is-true (data-flow:executingp scheduler))
       (let* ((state3 (data-flow:schedule scheduler (constantly 3))))
-        (is (= 1 (data-flow:count-queued-runnables state3)))))))
+        (is (zerop (data-flow:count-queued-runnables state3)))
+        (is (= 1 (data-flow:count-remaining-runnables state3)))))))
 
 (test schedule/remaining-runnables/execute1
   (do-schedulers (scheduler)
@@ -171,6 +187,77 @@
       (data-flow:wait-until-finished scheduler)
       (data-flow:cleanup scheduler)
       (finishes (data-flow:cleanup scheduler)))))
+
+(test wait-until-finished-with-timeout
+  (do-schedulers (scheduler)
+    (let* ((task1 nil)
+           (task2 nil)
+           (task3 nil))
+      (data-flow:schedule scheduler (lambda ()
+                                      (sleep 0.5)
+                                      (setf task1 t)))
+      (data-flow:schedule scheduler (lambda ()
+                                      (sleep 0.5)
+                                      (setf task2 t)))
+      (data-flow:schedule scheduler (lambda ()
+                                      (sleep 0.5)
+                                      (setf task3 t)))
+      (data-flow:start scheduler)
+      (multiple-value-bind (finished? new?) (data-flow:wait-until-finished scheduler :seconds 0.4)
+        (is-false finished?)
+        (is-true new?))
+
+      ;; task1 may be NIL or T for an arbitrary scheduler
+      (is-false task2)
+      (is-false task3)
+      (multiple-value-bind (finished? new?) (data-flow:wait-until-finished scheduler :seconds 0.4)
+        (is-false finished?)
+        (is-false new?))
+
+      (is-true task1)
+      ;; task2 may new NIL or T for an arbitrary scheduler
+      (is-false task3)
+      (multiple-value-bind (finished? new?) (data-flow:wait-until-finished scheduler :seconds 1.5)
+        (is-true finished?)
+        (is-false new?))
+
+      (is-true task1)
+      (is-true task2)
+      (is-true task3))))
+
+(test wait-until-finished-with-timeout/with-schedule-inside-runnable
+  (do-schedulers (scheduler)
+    (let* ((task1 nil)
+           (task2 nil)
+           (task3 nil))
+      (data-flow:schedule scheduler (lambda ()
+                                      (sleep 0.5)
+                                      (setf task1 t)))
+      (data-flow:schedule scheduler (lambda ()
+                                      (sleep 0.5)
+                                      (setf task2 t)
+                                      (data-flow:schedule scheduler (lambda ()
+                                                                      (sleep 0.5)
+                                                                      (setf task3 t)))))
+      (data-flow:start scheduler)
+      (multiple-value-bind (finished? new?) (data-flow:wait-until-finished scheduler :seconds 0.4)
+        (is-false finished?)
+        (is-true new?))
+
+      ;; task1 may be T or NIL for an arbitrary scheduler
+      (is-false task2)
+      (is-false task3)
+
+      (multiple-value-bind (finished? new?) (data-flow:wait-until-finished scheduler :seconds 2)
+        (is-true finished?)
+        (is-true new?))
+
+      (is-true task1)
+      (is-true task2)
+      (is-true task3)
+      (multiple-value-bind (finished? new?) (data-flow:wait-until-finished scheduler)
+        (is-true finished?)
+        (is-false new?)))))
 
 (test multiple-wait-until-finished-with-errors
   (do-schedulers (scheduler)
@@ -317,3 +404,42 @@
             (is (equalp (with-output-to-string (s)
                           (data-flow.scheduler::run-with-error-handling/output-warning scheduler condition s))
                         (get-output-stream-string stream)))))))))
+
+(test multiple-sequential-schedulers/execute1
+  (let* ((scheduler1 (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (scheduler2 (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (task1 nil)
+         (task2 nil)
+         (task3 nil)
+         (task4 nil))
+    (data-flow:schedule scheduler1 (lambda ()
+                                     (setf task1 t)
+                                     (data-flow:schedule scheduler2 (lambda ()
+                                                                      (setf task3 t)))))
+    (data-flow:schedule scheduler2 (lambda ()
+                                     (setf task2 t)
+                                     (data-flow:schedule scheduler1 (lambda ()
+                                                                      (setf task4 t)))))
+    (data-flow:execute1 scheduler1 scheduler2)
+    (is-true (and task1 task2 (not task3) (not task4)))
+
+    (data-flow:execute1 scheduler1 scheduler2)
+    (is-true (and task1 task2 task3 task4))))
+
+(test multiple-sequential-schedulers/execute
+  (let* ((scheduler1 (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (scheduler2 (data-flow.sequential-scheduler:make-sequential-scheduler))
+         (task1 nil)
+         (task2 nil)
+         (task3 nil)
+         (task4 nil))
+    (data-flow:schedule scheduler1 (lambda ()
+                                     (setf task1 t)
+                                     (data-flow:schedule scheduler2 (lambda ()
+                                                                      (setf task3 t)))))
+    (data-flow:schedule scheduler2 (lambda ()
+                                     (setf task2 t)
+                                     (data-flow:schedule scheduler1 (lambda ()
+                                                                      (setf task4 t)))))
+    (data-flow:execute scheduler1 scheduler2)
+    (is-true (and task1 task2 task3 task4))))

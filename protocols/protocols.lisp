@@ -53,17 +53,41 @@
 
 ;; Execute all tasks until no tasks are left or a single task has
 ;; signalled an error.
+;;
+;; If the scheduler was started using START1, then upon normal
+;; completion of WAIT-UNTIL-FINISHED, EXECUTINGP will return NIL and
+;; any scheduled jobs will be queued until START1 or START is applied
+;; to the scheduler.
+;;
+;; If the scheduler was started using START, then upon normal
+;; completion of WAIT-UNTIL-FINISHED, EXECUTINGP will return T and any
+;; scheduled jobs will be executed by the scheduler.
+;;
+;; If an error is signalled by any runnable executed by the scheduler
+;; then the scheduler will handle the error according to the value of
+;; *ON-ERROR*. If the user requests the scheduler to transition to a
+;; START1 state, then WAIT-UNTIL-FINISHED will resignal the error
+;; signalled by the runnable.
+;;
+;; The SECONDS argument specifies that WAIT-UNTIL-FINISHED will return
+;; if SECONDS of real time has elapsed. If no value is supplied for
+;; SECONDS then WAIT-UNTIL-FINISHED must wait indefinitely.
+;;
+;; Methods for this generic function return two values: FINISHED? and
+;; NEW?.
+;;
+;; FINISHED? is T if SCHEDULER has finished executing within SECONDS
+;; of elapsed time, otherwise NIL.
+;;
+;; NEW? is T if SCHEDULE was applied to SCHEDULER between the previous
+;; call to WAIT-UNTIL-FINISHED and the moment immediately before the
+;; current invocation of WAIT-UNTIL-FINISHED returns control to the
+;; caller.
 (defgeneric wait-until-finished (scheduler &key seconds &allow-other-keys))
 
 ;; Delete any resources associated with the scheduler. Users are
-;; allowed to start the scheduler after cleaning.
+;; allowed to start the scheduler again after invoking CLEANUP.
 (defgeneric cleanup (scheduler))
-
-;; START1, WAIT-UNTIL-FINISHED and CLEANUP.
-(defgeneric execute1 (scheduler))
-
-;; START, WAIT-UNTIL-FINISHED and CLEANUP.
-(defgeneric execute (scheduler))
 
 (define-condition execution-error (error)
   ((%scheduler :initarg :scheduler
@@ -105,6 +129,34 @@ A value of :WARN-AND-START1 indicates that a message should be printed
 to *DEBUG-IO* and the scheduler should proceed as if the value of this
 variable were START1.
 ")
+
+;; START1, WAIT-UNTIL-FINISHED and CLEANUP.
+(defun execute1 (&rest schedulers)
+  (dolist (scheduler schedulers)
+    (start1 scheduler))
+  (unwind-protect
+       (dolist (scheduler schedulers)
+         (let ((finished? (wait-until-finished scheduler)))
+           (assert finished?)))
+    (dolist (scheduler schedulers)
+      (cleanup scheduler))))
+
+;; START, WAIT-UNTIL-FINISHED and CLEANUP.
+(defun execute (&rest schedulers)
+  (dolist (scheduler schedulers)
+    (start scheduler))
+  (unwind-protect
+       (loop
+         with all-finished? = nil
+         until all-finished?
+         do
+            (setf all-finished? t)
+            (dolist (scheduler schedulers)
+              (multiple-value-bind (finished? new?) (wait-until-finished scheduler)
+                (unless (and finished? (not new?))
+                  (setf all-finished? nil)))))
+    (dolist (scheduler schedulers)
+      (cleanup scheduler))))
 
 ;;;; Sequential Scheduler
 
@@ -120,19 +172,6 @@ variable were START1.
 (defgeneric number-of-threads (parallel-scheduler))
 
 (defgeneric threads (parallel-scheduler))
-
-;;;; Default implementations for SCHEDULER.
-
-(defmethod execute1 ((scheduler scheduler))
-  (start1 scheduler)
-  (unwind-protect (wait-until-finished scheduler)
-    (cleanup scheduler)))
-
-(defmethod execute ((scheduler scheduler))
-  (start scheduler)
-  (unwind-protect (wait-until-finished scheduler)
-    (cleanup scheduler)))
-
 
 ;;;; Component
 ;;
