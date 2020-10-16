@@ -66,10 +66,11 @@
                                              (sleep 0.2))
                                         (setf (state) :terminated)))
         (data-flow:start scheduler)
-        (loop
-          until (eql :running (state))
-          do
-             (is-false (data-flow:wait-until-finished scheduler :seconds 1)))
+        (is-true
+         (loop
+           until (eql :running (state))
+           always
+           (not (data-flow:wait-until-finished scheduler :seconds 1))))
         (is-false (data-flow:wait-until-finished scheduler :seconds 1))
         (setf (state) :shutdown)
         (loop
