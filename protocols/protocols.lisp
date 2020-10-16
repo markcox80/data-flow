@@ -89,12 +89,6 @@
 ;; allowed to start the scheduler again after invoking CLEANUP.
 (defgeneric cleanup (scheduler))
 
-;; START1, WAIT-UNTIL-FINISHED and CLEANUP.
-(defgeneric execute1 (scheduler))
-
-;; START, WAIT-UNTIL-FINISHED and CLEANUP.
-(defgeneric execute (scheduler))
-
 (define-condition execution-error (error)
   ((%scheduler :initarg :scheduler
                :reader execution-error-scheduler)
@@ -135,6 +129,34 @@ A value of :WARN-AND-START1 indicates that a message should be printed
 to *DEBUG-IO* and the scheduler should proceed as if the value of this
 variable were START1.
 ")
+
+;; START1, WAIT-UNTIL-FINISHED and CLEANUP.
+(defun execute1 (&rest schedulers)
+  (dolist (scheduler schedulers)
+    (start1 scheduler))
+  (unwind-protect
+       (dolist (scheduler schedulers)
+         (let ((finished? (wait-until-finished scheduler)))
+           (assert finished?)))
+    (dolist (scheduler schedulers)
+      (cleanup scheduler))))
+
+;; START, WAIT-UNTIL-FINISHED and CLEANUP.
+(defun execute (&rest schedulers)
+  (dolist (scheduler schedulers)
+    (start scheduler))
+  (unwind-protect
+       (loop
+         with all-finished? = nil
+         until all-finished?
+         do
+            (setf all-finished? t)
+            (dolist (scheduler schedulers)
+              (multiple-value-bind (finished? new?) (wait-until-finished scheduler)
+                (unless (and finished? (not new?))
+                  (setf all-finished? nil)))))
+    (dolist (scheduler schedulers)
+      (cleanup scheduler))))
 
 ;;;; Sequential Scheduler
 
@@ -150,19 +172,6 @@ variable were START1.
 (defgeneric number-of-threads (parallel-scheduler))
 
 (defgeneric threads (parallel-scheduler))
-
-;;;; Default implementations for SCHEDULER.
-
-(defmethod execute1 ((scheduler scheduler))
-  (start1 scheduler)
-  (unwind-protect (wait-until-finished scheduler)
-    (cleanup scheduler)))
-
-(defmethod execute ((scheduler scheduler))
-  (start scheduler)
-  (unwind-protect (wait-until-finished scheduler)
-    (cleanup scheduler)))
-
 
 ;;;; Component
 ;;
