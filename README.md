@@ -3,17 +3,17 @@ Data Flow for Common Lisp
 
 The data flow system provides an interface for building applications
 where data "flows" from one component to another via events and/or
-ports. The logic of a component is executed when data is available or
-there is capacity in a connection. A major advantage of authoring
-applications in this manner is that minimal effort is needed to take
-advantage of multi-threaded execution environments.
+ports. The logic of a component is scheduled to be executed when an
+event has arrived, data is available or there is capacity in a
+connection. Applications authored in this way require minimal effort
+to take advantage of multi-threaded execution environments.
 
 The design criteria for the system are:
 - There are no assumptions on the execution environment i.e. all
   applications written using the API can progress in either single
   threaded or multi-threaded execution environments with no code
   changes.
-- Users have full control over the execution of components.
+- Users have full control over when a component is executed.
 - It is impossible for the logic of a component to be executed by two
   or more threads simultaneously when using the events and/or ports
   interface.
@@ -31,7 +31,7 @@ implementations:
    support if available.
 
 The data flow system provides abstractions for the following:
-1. [Scheduling](# Scheduling)
+1. [Scheduling](doc/schedulers.md)
 2. [Components](# Components)
 3. [Ports](# Ports)
 4. [Events](# Events)
@@ -45,14 +45,14 @@ by the number of threads assigned to each scheduler.
 
 The level of contention in the standard component implementation is
 bounded by the maximum number of threads interacting with the
-component or the number of threads available to the component's
+component or the number of threads assigned to the component's
 scheduler.
 
 # Example
 Below is a trivial application involving two components which
 communicate with each other using ports. One component (class
-`map-list-component`) sends values obtained from a list to another
-component which prints the received values (class `print-component`).
+`map-list-component`) sends values from a list to another component
+which prints the received values (class `print-component`).
 
 ```lisp
 ;;; Load the data flow system.
@@ -126,7 +126,7 @@ component which prints the received values (class `print-component`).
     (data-flow:connect-ports map-list-component (output-port map-list-component)
                              print-component (input-port print-component))
 
-    ;; Schedule generator component to get things moving.
+    ;; Schedule the map-list-component to get things moving.
     (data-flow:schedule scheduler map-list-component)
 
     ;; Execute tasks until finished.
@@ -140,17 +140,11 @@ component which prints the received values (class `print-component`).
 ```
 
 # Installation
-The data flow system uses
-[ASDF](https://common-lisp.net/project/asdf/) to manage building. The
-system depends on the following external projects available from
+The system depends on the following external projects available from
 (quicklisp)[https://www.quicklisp.org/beta/]:
 1. [Alexandria](https://common-lisp.net/project/alexandria/)
 2. [Boreeaux Threads](https://common-lisp.net/project/bordeaux-threads/)
 3. [FiveAM](https://common-lisp.net/project/fiveam/) (only required for unit tests)
 
-# Scheduling
-
-
-# Components
-A component represents a task to be performed which requires and/or
-produces data from other components.
+The data flow system uses
+[ASDF](https://common-lisp.net/project/asdf/) to manage building.
