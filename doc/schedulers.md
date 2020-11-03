@@ -99,8 +99,61 @@ same actions as `:START1` and output a message to
 Runnables which perform I/O can use the predicate `BLOCKING-ALLOWED-P`
 to obtain permission from the scheduler to block.
 
+## Sequential and Parallel
+A scheduler which is a subclass of `DATA-FLOW:SEQUENTIAL-SCHEDULER`
+has at most one runnable executing.
+
+A scheduler which is a subclass of `DATA-FLOW:PARALLEL-SCHEDULER` is
+able to execute more than one runnable simultaneously. The number of
+threads available to the scheduler can be obtained using the function
+`DATA-FLOW:NUMBER-OF-THREADS`.
+
 # Sequential Scheduler
+The scheduler returned by the function
+`DATA-FLOW.SEQUENTIAL-SCHEDULER:MAKE-SEQUENTIAL-SCHEDULER` is the
+basic implementation of the scheduler protocol. It assumes that the
+underlying common lisp runtime has no thread support.
 
 # Thread Pool Scheduler
+The thread pool scheduler allows multiple runnables to be executed
+simultaneously if the common lisp runtime has thread support. If no
+thread support is available, the scheduler returned is a subclass of
+the sequential scheduler.
+
+The function `DATA-FLOW.THREAD-POOL:MAKE-THREAD-POOL` creates a thread
+pool scheduler which uses a specified number of threads.
 
 # Resource Scheduler
+The resource scheduler is a thread pool scheduler which executes
+runnables if and only if sufficient resources are available.
+
+The function `DATA-FLOW.RESOURCE-SCHEDULER:MAKE-RESOURCE-SCHEDULER`
+creates a resource scheduler using the specified number of threads,
+the specified available resource (see below) and a function which
+computes the required resources for a runnable.
+
+The resource maintained by a resource scheduler must implement the
+following resource pool protocol:
+- `(DATA-FLOW.RESOURCE-SCHEDULER:TEST-RESOURCES-P RESOURCE-POOL RESOURCES)`
+- `(DATA-FLOW.RESOURCE-SCHEDULER:TEST-AND-CLAIM-RESOURCES RESOURCE-POOL RESOURCES)`
+- `(DATA-FLOW.RESOURCE-SCHEDULER:RETURN-RESOURCES RESOURCE-POOL RESOURCES)`
+
+The predicate `TEST-RESOURCES-P` returns non nil if `RESOURCES` can be
+removed from the `RESOURCE-POOL`.
+
+The function `TEST-AND-CLAIM-RESOURCES` returns a new resource pool
+which has `RESOURCES` removed from the pool.
+
+The function `RETURN-RESOURCES` returns a new resource pool which has
+`RESOURCES` added to the pool.
+
+An implementation of the resource pool protocol is provided for a
+resource which can be modelled using a non negative real.
+
+# Implementing a new scheduler
+Users are able to write their own scheduler if the above
+implementations are unsatisfactory.
+
+One requirement of all schedulers is that the scheduled or execution
+queue must not be equivalent to a last-in-first-out queue. Such a
+strategy can result in certain applications failing to progress.
