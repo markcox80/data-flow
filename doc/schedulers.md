@@ -33,7 +33,7 @@ queue. Once started, the user calls `WAIT-UNTIL-FINISHED` to wait for
 the runnables in the execution queue to complete or a specified wall
 clock time to elapse.
 
-Note that it is unspecified when runnables start executing, but
+Note that it is unspecified when runnables start executing, however,
 runnables must have started executing when `START1` or `START`
 followed by `WAIT-UNTIL-FINISHED` has been applied to the scheduler.
 
