@@ -14,6 +14,8 @@
 
 (defpackage "DATA-FLOW.COMPONENT.STANDARD-PORT"
   (:use "COMMON-LISP")
+  (:import-from "DATA-FLOW"
+                "STANDARD-PORT-COMPONENT-MIXIN")
   (:export "STANDARD-PORT"
            "STANDARD-INPUT-PORT"
            "STANDARD-OUTPUT-PORT"

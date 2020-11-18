@@ -312,6 +312,13 @@ variable were START1.
 
 (defmethod connectedp ((port port))
   (not (null (connection port))))
+
+;; The class STANDARD-PORT-COMPONENT-MIXIN provides components with a
+;; default implementation of the ports protocol.
+;;
+;; This class is defined elsewhere due to the way it is implemented.
+;; (defclass standard-port-component-mixin ()
+;;   ())
 
 ;;;; Input port protocol
 
