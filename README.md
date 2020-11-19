@@ -34,7 +34,7 @@ The data flow system provides abstractions for the following:
 1. [Scheduling](doc/schedulers.md)
 2. [Components](doc/components.md)
 3. [Ports](doc/ports.md)
-4. [Sequential Objects](# Sequential Objects)
+4. [Sequential Objects](doc/sequential-objects.md)
 
 Each component is assigned to a single scheduler and more than one
 scheduler can be used simultaneously.
