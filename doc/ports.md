@@ -2,9 +2,7 @@ Ports
 -----
 
 A port in the data flow system represents one end of a unidirectional
-communication channel between two components. The implementation is
-built on top of the events interface defined for
-[components](components.md).
+communication channel between two components.
 
 All operations on ports are non blocking to ensure the application
 progresses.
@@ -31,7 +29,8 @@ an output port using the function
 The arguments `port1` and `port2` are the input and output ports to
 connect.
 
-When the state of `port1` changes, the component `component2` will be
+All operations on a port attempt to query or change its state. When
+the state of `port1` changes, the component `component2` will be
 scheduled for execution. Similarly, when the state of `port2` changes,
 the component `component1` will be scheduled for execution.
 
@@ -41,12 +40,6 @@ provided, the value of `DATA-FLOW:*DEFAULT-TOTAL-SPACE*` is used.
 
 A connection can be severed by applying `DATA-FLOW:DISCONNECT-PORT` to
 a port.
-
-All operations on a port attempt to query or change its
-state. Notifications of changes in state are automatically sent to the
-other port via [component events](components.md). All port operations
-must invoke `DATA-FLOW:PROCESS-EVENTS` on the component associated
-with the port i.e. specified at `DATA-FLOW:CONNECT-PORTS`.
 
 # Output Ports
 
@@ -75,7 +68,7 @@ If no space is available in the channel for a new value, then
 `WRITE-VALUE-CASE` will execute the body of the clause with the key
 `DATA-FLOW:NO-SPACE-AVAILABLE`. If the port is disconnected, then
 `WRITE-VALUE-CASE` will execute the body of the
-`DATA-FLOW:DISCONNECTED` clause. If the value is written, then the
+`DATA-FLOW:DISCONNECTED` clause. If the value `1` is written, then the
 `DATA-FLOW:SUCCESS` clause will be executed.
 
 If no `DATA-FLOW:NO-SPACE-AVAILABLE` clause is specified, then an
