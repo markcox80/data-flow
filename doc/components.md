@@ -35,7 +35,12 @@ each received event by `DATA-FLOW:PROCESS-ALL-EVENTS`
 The generic functions `DATA-FLOW:EXECUTION-STATE` and
 `DATA-FLOW:COMPARE-AND-CHANGE-EXECUTION-STATE` ensure that at most one
 thread can execute the logic of the component. The execution state of
-a component can be one of `:STOPPED`, `:SCHEDULED` or `:RUNNING`.
+a component can be one of `:STOPPED`, `:SCHEDULED` or `:RUNNING`. The
+function `DATA-FLOW:EXECUTION-STATE` returns the current state of the
+component, and the function
+`DATA-FLOW:COMPARE-AND-CHANGE-EXECUTION-STATE` will change the state
+of the component if and only if the component's current state is equal
+to a specific value.
 
 The scheduler used by a component can be accessed using the
 `DATA-FLOW:SCHEDULER` function.
@@ -43,8 +48,9 @@ The scheduler used by a component can be accessed using the
 Users are able to use the dynamic variable `DATA-FLOW:*SCHEDULER*` to
 specify the default scheduler for a component.
 
-The functions `DATA-FLOW:ENQUEUE-EVENT`, `DATA-FLOW:EXECUTION-STATE`
-and `DATA-FLOW:COMPARE-AND-CHANGE-EXECUTION-STATE` linearize all
+Implementations of `DATA-FLOW:ENQUEUE-EVENT`,
+`DATA-FLOW:EXECUTION-STATE` and
+`DATA-FLOW:COMPARE-AND-CHANGE-EXECUTION-STATE` must linearize all
 concurrent access to the component. All other operators are assumed to
 be invoked during an invocation of the closure returned by
 `DATA-FLOW:MAKE-COMPONENT-LAMBDA`.
