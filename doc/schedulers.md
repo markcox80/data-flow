@@ -21,7 +21,7 @@ An individual task is referred to as a `RUNNABLE` and all runnables
 must provide a `RUN` method. A `RUN` method is provided for `FUNCTION`
 objects which assumes that the function object requires no arguments.
 
-Runnables can be scheduled using the `SCHEDULE` function
+Runnables are scheduled using the `SCHEDULE` function
 ```lisp
 (schedule scheduler (lambda () (print "here")))
 ```
@@ -33,13 +33,13 @@ queue. Once started, the user calls `WAIT-UNTIL-FINISHED` to wait for
 the runnables in the execution queue to complete or a specified wall
 clock time to elapse.
 
-Note that it is unspecified when runnables start executing, however,
-runnables must have started executing when `START1` or `START`
-followed by `WAIT-UNTIL-FINISHED` has been applied to the scheduler.
+It is unspecified when runnables start executing, however, runnables
+must have started executing when `START1` or `START` followed by
+`WAIT-UNTIL-FINISHED` has been applied to the scheduler.
 
 If a scheduler is started using `START1` then any runnable scheduled
 after invocation of `START1` will be added to the scheduled queue and
-will only be executed the next time the scheduler is started and
+executed the next time the functions `START1` or `START` followed by
 `WAIT-UNTIL-FINISHED` is applied to the scheduler.
 
 If a scheduler is started using `START` then any runnable scheduled
@@ -88,11 +88,11 @@ A value of `:IGNORE` requires the scheduler to ignore the error and
 continue execution.
 
 A value of `:WARN-AND-IGNORE` requires the scheduler to perform the
-same actions as in `:IGNORE` and output a message to `*ERROR-OUTPUT*`.
+same actions as in `:IGNORE` and output a message to `CL:*ERROR-OUTPUT*`.
 
 A value of `:WARN-AND-START1` requires the scheduler to perform the
 same actions as `:START1` and output a message to
-`*ERROR-OUTPUT*`.
+`CL:*ERROR-OUTPUT*`.
 
 ## Blocking
 
@@ -141,8 +141,9 @@ following resource pool protocol:
 The predicate `TEST-RESOURCES-P` returns non nil if `RESOURCES` can be
 removed from the `RESOURCE-POOL`.
 
-The function `TEST-AND-CLAIM-RESOURCES` returns a new resource pool
-which has `RESOURCES` removed from the pool.
+The function `TEST-AND-CLAIM-RESOURCES` returns a new resource pool if
+`RESOURCES` can be removed from the pool. The function returns `NIL`
+otherwise.
 
 The function `RETURN-RESOURCES` returns a new resource pool which has
 `RESOURCES` added to the pool.
@@ -156,4 +157,4 @@ implementations are unsatisfactory.
 
 One requirement of all schedulers is that the scheduled or execution
 queue must not be equivalent to a last-in-first-out queue. Such a
-strategy can result in certain applications failing to progress.
+strategy can result in applications failing to progress.
