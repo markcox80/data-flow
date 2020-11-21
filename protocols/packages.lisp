@@ -59,6 +59,9 @@
            "PORT-ERROR-PORT"
            "PORT-DISCONNECTED-ERROR")
 
+  ;; Port implementations
+  (:export "STANDARD-PORT-COMPONENT-MIXIN")
+
   ;; Input Port protocol
   (:export "INPUT-PORT"
            "INPUT-PORT-P"
