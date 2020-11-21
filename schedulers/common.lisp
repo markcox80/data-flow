@@ -1,5 +1,10 @@
 (in-package "DATA-FLOW.SCHEDULER")
 
+(defgeneric original-runnable (runnable))
+
+(defmethod original-runnable ((runnable t))
+  runnable)
+
 (defvar *error-output-sequential-object* (make-instance 'data-flow.sequential-object:sequential-object))
 
 (defun run-with-error-handling/output-warning (scheduler condition &optional (stream *error-output*))

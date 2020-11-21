@@ -7,7 +7,9 @@
            "IGNORE"
            "START1"
            "WARN-AND-IGNORE"
-           "WARN-AND-START1"))
+           "WARN-AND-START1")
+
+  (:export "ORIGINAL-RUNNABLE"))
 
 (defpackage "DATA-FLOW.SEQUENTIAL-SCHEDULER"
   (:use "COMMON-LISP")
@@ -35,5 +37,4 @@
   (:export "*DEFAULT-POLL-SECONDS*"
            "THREAD-POOL"
            "MAKE-THREAD-POOL"
-           "EXECUTE-RUNNABLE-P"
-           "ORIGINAL-RUNNABLE"))
+           "EXECUTE-RUNNABLE-P"))

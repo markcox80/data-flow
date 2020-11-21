@@ -106,7 +106,7 @@
              (setf (error-condition scheduler) (make-instance 'data-flow:execution-error
                                                               :scheduler scheduler
                                                               :condition c
-                                                              :runnable runnable)
+                                                              :runnable (data-flow.scheduler:original-runnable runnable))
                    (state scheduler) :executing1))))
        (decf (remaining-count scheduler)))
 

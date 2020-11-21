@@ -49,7 +49,7 @@
            (setf last-error (make-instance 'data-flow:execution-error
                                            :scheduler scheduler
                                            :condition e
-                                           :runnable (original-runnable runnable)))))))
+                                           :runnable (data-flow.scheduler:original-runnable runnable)))))))
 
 
 ;;;; Parallel Thread Pool

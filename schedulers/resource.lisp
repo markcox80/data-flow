@@ -36,7 +36,7 @@
    (%required-resources :initarg :required-resources
                         :reader required-resources)))
 
-(defmethod data-flow.thread-pool:original-runnable ((runnable runnable-with-resources))
+(defmethod data-flow.scheduler:original-runnable ((runnable runnable-with-resources))
   (delegate-runnable runnable))
 
 ;;;; Resource Scheduler
