@@ -20,14 +20,21 @@
                        #-data-flow.features:threads
                        sequential-thread-pool)
   ())
+
+(defclass thread-pool/one-thread (thread-pool data-flow:sequential-scheduler)
+  ())
 
 
 (defun make-thread-pool (number-of-threads &key (poll-seconds *default-poll-seconds*))
+  (declare (ignorable number-of-threads poll-seconds))
   (check-type number-of-threads (integer 1))
   (check-type poll-seconds (real 0))
-  (cond ((= 1 number-of-threads)
-         (make-instance 'sequential-thread-pool))
-        (t
-         (make-instance 'thread-pool
-                        :number-of-threads number-of-threads
-                        :poll-seconds poll-seconds))))
+  #+data-flow.features:threads
+  (make-instance (cond ((= 1 number-of-threads)
+                        'thread-pool/one-thread)
+                       (t
+                        'thread-pool))
+                 :number-of-threads number-of-threads
+                 :poll-seconds poll-seconds)
+  #-data-flow.features:threads
+  (make-instance 'sequential-thread-pool))
