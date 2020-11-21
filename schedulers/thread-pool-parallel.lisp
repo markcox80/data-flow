@@ -186,7 +186,8 @@
            (setf finished? t
                  error (%error thread-pool)
                  (%error thread-pool) nil)))
-       (sleep poll-seconds)
+       (unless finished?
+         (sleep poll-seconds))
     finally
        (return (if error
                    (error error)
