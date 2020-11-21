@@ -4,11 +4,12 @@ Data Flow for Common Lisp
 The data flow system provides an interface for building applications
 where data "flows" from one component to another via events and/or
 ports. The logic of a component is scheduled to be executed when an
-event has arrived, data is available or there is capacity in a
-connection. Applications authored in this way require minimal effort
-to take advantage of multi-threaded execution environments.
+event has arrived, data is available on a port or there is new
+capacity in a connection. Applications authored in this way require
+minimal effort to take advantage of multi-threaded execution
+environments.
 
-The design criteria for the system are:
+The goals for the data flow system are:
 - There are no assumptions on the execution environment i.e. all
   applications written using the API can progress in either single
   threaded or multi-threaded execution environments with no code
@@ -22,7 +23,7 @@ The design criteria for the system are:
 - It must be possible for components to implement non-blocking I/O
   efficiently.
 
-The data flow system accommodates the following common lisp
+The data flow system supports the following common lisp
 implementations:
 1. Implementations with no thread support.
 2. Multi-threaded implementations supported by [Bordeaux
@@ -40,15 +41,13 @@ Each component is assigned to a single scheduler and more than one
 scheduler can be used simultaneously.
 
 The amount of contention in the scheduler implementations is bounded
-by the number of threads assigned to each scheduler.
-
-The level of contention in the standard component implementation is
-bounded by the maximum number of threads interacting with the
-component or the number of threads assigned to the component's
-scheduler.
+by the number of threads assigned to each scheduler. The amount of
+contention in the standard component implementation is bounded by the
+maximum number of threads interacting with the component or the number
+of threads assigned to the component's scheduler.
 
 # Example
-Below is a trivial application involving two components which
+Below is an example application involving two components which
 communicate with each other using ports. One component (class
 `map-list-component`) sends values from a list to another component
 which prints the received values (class `print-component`).
