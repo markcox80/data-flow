@@ -85,6 +85,7 @@
   :description "A framework for authoring and using components that process data arriving via ports."
   :depends-on ("data-flow/schedulers"
                "data-flow/components")
+  :version "0.9.0"
   :in-order-to ((test-op (test-op "data-flow/tests"))))
 
 ;;;; Tests
